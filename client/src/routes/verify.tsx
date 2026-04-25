@@ -9,7 +9,7 @@ import { AuthShell } from "./login";
 export const Route = createFileRoute("/verify")({
   head: () => ({
     meta: [
-      { title: "Verify Code — NHIS Booking" },
+      { title: "Verify Code - NHIS Booking" },
       { name: "description", content: "Verify your phone number with a one-time code." },
     ],
   }),
@@ -91,10 +91,7 @@ function VerifyPage() {
       subtitle={`Enter the ${OTP_LENGTH}-digit code we sent${pendingRegistration?.phone ? ` to ${pendingRegistration.phone}` : ""}`}
     >
       <form onSubmit={onVerify} className="space-y-6">
-        <div
-          className="flex justify-center gap-2 sm:gap-3"
-          onPaste={handlePaste}
-        >
+        <div className="mx-auto grid max-w-[340px] grid-cols-6 gap-2 sm:max-w-none sm:gap-3" onPaste={handlePaste}>
           {digits.map((d, i) => (
             <input
               key={i}
@@ -106,7 +103,7 @@ function VerifyPage() {
               value={d}
               onChange={(e) => setDigit(i, e.target.value)}
               onKeyDown={(e) => handleKey(i, e)}
-              className="h-12 w-10 sm:h-14 sm:w-12 rounded-xl border-2 border-input bg-background text-center text-xl font-semibold text-foreground transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15"
+              className="h-12 w-full rounded-xl border-2 border-input bg-background text-center text-lg font-semibold text-foreground transition-all focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/15 sm:h-14 sm:text-xl"
               aria-label={`Digit ${i + 1}`}
             />
           ))}
@@ -118,7 +115,7 @@ function VerifyPage() {
           ) : (
             <>
               <ShieldCheck className="h-4 w-4" />
-              Verify & Continue
+              Verify and Continue
             </>
           )}
         </Button>
@@ -129,11 +126,7 @@ function VerifyPage() {
               Resend code in <span className="font-semibold text-foreground">{seconds}s</span>
             </span>
           ) : (
-            <button
-              type="button"
-              onClick={resend}
-              className="font-medium text-primary hover:underline"
-            >
+            <button type="button" onClick={resend} className="font-medium text-primary hover:underline">
               Resend code
             </button>
           )}

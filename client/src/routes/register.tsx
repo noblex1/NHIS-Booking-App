@@ -12,7 +12,7 @@ import { AuthShell } from "./login";
 export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
-      { title: "Register — NHIS Booking" },
+      { title: "Register - NHIS Booking" },
       { name: "description", content: "Create your NHIS account to start booking appointments." },
     ],
   }),
@@ -54,29 +54,26 @@ function RegisterPage() {
   };
 
   return (
-    <AuthShell
-      title="Create your account"
-      subtitle="Just a few details to get you started"
-    >
+    <AuthShell title="Create your account" subtitle="Just a few details to get you started">
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name">Full Name</Label>
           <Input
             id="name"
+            className="h-11"
             placeholder="Jane Doe"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             aria-invalid={!!errors.fullName}
           />
-          {errors.fullName && (
-            <p className="text-xs text-destructive">{errors.fullName}</p>
-          )}
+          {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="dob">Date of Birth</Label>
           <Input
             id="dob"
+            className="h-11"
             type="date"
             max={new Date().toISOString().split("T")[0]}
             value={dob}
@@ -90,15 +87,14 @@ function RegisterPage() {
           <Label htmlFor="phone">Phone Number</Label>
           <Input
             id="phone"
+            className="h-11"
             type="tel"
             placeholder="+233 20 123 4567"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             aria-invalid={!!errors.phone}
           />
-          {errors.phone && (
-            <p className="text-xs text-destructive">{errors.phone}</p>
-          )}
+          {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
         </div>
 
         <Button type="submit" className="w-full" size="lg" disabled={loading}>

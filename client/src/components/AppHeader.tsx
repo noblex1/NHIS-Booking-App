@@ -15,8 +15,8 @@ export function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/90 backdrop-blur-md">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:py-0 sm:px-6">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground shadow-[var(--shadow-card)] transition-transform group-hover:scale-105">
             <Heart className="h-5 w-5" fill="currentColor" />
@@ -29,37 +29,39 @@ export function AppHeader() {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-2">
+        <nav className="flex w-full items-center justify-end gap-2 sm:w-auto">
           {user ? (
             <>
               <Link
                 to="/dashboard"
-                className="hidden sm:inline-flex rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                className="inline-flex rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:px-3 sm:text-sm"
                 activeProps={{ className: "text-foreground bg-accent" }}
               >
                 Dashboard
               </Link>
               <Link
                 to="/appointments"
-                className="hidden sm:inline-flex rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                className="inline-flex rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:px-3 sm:text-sm"
                 activeProps={{ className: "text-foreground bg-accent" }}
               >
-                My Appointments
+                Appointments
               </Link>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="px-2.5 sm:px-3">
                 <LogOut className="h-4 w-4 sm:mr-1" />
                 <span className="hidden sm:inline">Logout</span>
               </Button>
             </>
           ) : (
             <>
-              <Link to="/login">
-                <Button variant="ghost" size="sm">
+              <Link to="/login" className="shrink-0">
+                <Button variant="ghost" size="sm" className="px-3">
                   Login
                 </Button>
               </Link>
-              <Link to="/register">
-                <Button size="sm">Register</Button>
+              <Link to="/register" className="shrink-0">
+                <Button size="sm" className="px-4">
+                  Register
+                </Button>
               </Link>
             </>
           )}

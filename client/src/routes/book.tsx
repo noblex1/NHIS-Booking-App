@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/book")({
   head: () => ({
     meta: [
-      { title: "Book Appointment — NHIS Booking" },
+      { title: "Book Appointment - NHIS Booking" },
       { name: "description", content: "Choose a date and time slot for your appointment." },
     ],
   }),
@@ -27,12 +27,22 @@ export const Route = createFileRoute("/book")({
 });
 
 const TIME_SLOTS = [
-  "08:30 AM", "09:00 AM", "09:30 AM", "10:00 AM",
-  "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM",
-  "01:00 PM", "01:30 PM", "02:00 PM", "02:30 PM",
-  "03:00 PM", "03:30 PM", "04:00 PM",
+  "08:30 AM",
+  "09:00 AM",
+  "09:30 AM",
+  "10:00 AM",
+  "10:30 AM",
+  "11:00 AM",
+  "11:30 AM",
+  "12:00 PM",
+  "01:00 PM",
+  "01:30 PM",
+  "02:00 PM",
+  "02:30 PM",
+  "03:00 PM",
+  "03:30 PM",
+  "04:00 PM",
 ];
-// Some pre-disabled slots for realism
 const UNAVAILABLE = new Set(["09:00 AM", "11:00 AM", "02:00 PM"]);
 
 function BookPage() {
@@ -79,55 +89,49 @@ function BookPage() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
         <p className="text-sm font-medium text-primary">Booking</p>
-        <h1 className="mt-1 text-3xl font-bold text-foreground sm:text-4xl">
-          Book an appointment
-        </h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">Book an appointment</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Choose a date and an available time slot.
         </p>
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[auto_1fr]">
-        {/* Calendar */}
-        <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-[var(--shadow-card)]">
+      <div className="mt-6 grid gap-4 lg:mt-8 lg:grid-cols-[auto_1fr] lg:gap-6">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:p-6">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Select date</h2>
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={(d) => {
-              setDate(d);
-              setSlot(null);
-            }}
-            disabled={(d) => {
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              return d < today || d.getDay() === 0;
-            }}
-            className={cn("p-0 pointer-events-auto")}
-          />
+          <div className="mx-auto w-fit">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d) => {
+                setDate(d);
+                setSlot(null);
+              }}
+              disabled={(d) => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return d < today || d.getDay() === 0;
+              }}
+              className={cn("pointer-events-auto p-0")}
+            />
+          </div>
         </div>
 
-        {/* Slots */}
-        <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-[var(--shadow-card)]">
-          <div className="flex items-center justify-between">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:p-6">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-sm font-semibold text-foreground">Time slots</h2>
-            {date && (
-              <span className="text-xs text-muted-foreground">
-                {format(date, "EEEE, MMM d")}
-              </span>
-            )}
+            {date && <span className="text-xs text-muted-foreground">{format(date, "EEEE, MMM d")}</span>}
           </div>
 
           {!date ? (
-            <div className="mt-10 flex flex-col items-center justify-center text-center text-muted-foreground">
+            <div className="mt-8 flex flex-col items-center justify-center text-center text-muted-foreground sm:mt-10">
               <CalendarCheck className="h-10 w-10 opacity-40" />
               <p className="mt-2 text-sm">Select a date to see available slots</p>
             </div>
           ) : (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {TIME_SLOTS.map((s) => {
                 const disabled = UNAVAILABLE.has(s);
                 const active = slot === s;
@@ -144,8 +148,7 @@ function BookPage() {
                       !disabled &&
                         !active &&
                         "border-border bg-background text-foreground hover:border-primary/50 hover:bg-primary/5",
-                      active &&
-                        "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-card)]",
+                      active && "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-card)]",
                     )}
                   >
                     {s}
@@ -155,7 +158,7 @@ function BookPage() {
             </div>
           )}
 
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-6 flex flex-col gap-3">
             <div className="text-sm text-muted-foreground">
               {date && slot ? (
                 <>
@@ -168,7 +171,7 @@ function BookPage() {
                 "No selection yet"
               )}
             </div>
-            <Button size="lg" onClick={open} disabled={!date || !slot}>
+            <Button size="lg" onClick={open} disabled={!date || !slot} className="w-full sm:w-auto">
               Confirm Appointment
             </Button>
           </div>
@@ -176,7 +179,7 @@ function BookPage() {
       </div>
 
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[480px]">
           {done ? (
             <>
               <DialogHeader>
@@ -185,18 +188,18 @@ function BookPage() {
                 </div>
                 <DialogTitle className="text-center">Appointment Confirmed</DialogTitle>
                 <DialogDescription className="text-center">
-                  We've booked your visit for{" "}
+                  We booked your visit for{" "}
                   <span className="font-medium text-foreground">
                     {date && format(date, "EEEE, MMM d")} at {slot}
                   </span>
                   .
                 </DialogDescription>
               </DialogHeader>
-              <DialogFooter className="sm:justify-center gap-2">
-                <Button variant="outline" onClick={() => navigate({ to: "/appointments" })}>
+              <DialogFooter className="gap-2 sm:justify-center">
+                <Button variant="outline" className="w-full sm:w-auto" onClick={() => navigate({ to: "/appointments" })}>
                   View Appointments
                 </Button>
-                <Button onClick={() => navigate({ to: "/dashboard" })}>
+                <Button className="w-full sm:w-auto" onClick={() => navigate({ to: "/dashboard" })}>
                   Back to Dashboard
                 </Button>
               </DialogFooter>
@@ -210,10 +213,15 @@ function BookPage() {
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="gap-2">
-                <Button variant="outline" onClick={() => setShowModal(false)} disabled={confirming}>
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  onClick={() => setShowModal(false)}
+                  disabled={confirming}
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleConfirm} disabled={confirming}>
+                <Button className="w-full sm:w-auto" onClick={handleConfirm} disabled={confirming}>
                   {confirming ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm"}
                 </Button>
               </DialogFooter>

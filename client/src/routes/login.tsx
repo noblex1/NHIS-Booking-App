@@ -11,7 +11,7 @@ import { authStore } from "@/lib/auth-store";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Login — NHIS Booking" },
+      { title: "Login - NHIS Booking" },
       { name: "description", content: "Login to your NHIS account to book appointments." },
     ],
   }),
@@ -49,7 +49,6 @@ function LoginPage() {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 900));
 
-    // Mock: any valid format succeeds
     authStore.login({
       fullName: "Patient",
       nhisNumber: parsed.data.nhisNumber,
@@ -60,29 +59,26 @@ function LoginPage() {
   };
 
   return (
-    <AuthShell
-      title="Welcome back"
-      subtitle="Login to your NHIS account to manage appointments"
-    >
+    <AuthShell title="Welcome back" subtitle="Login to your NHIS account to manage appointments">
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="nhis">NHIS Number</Label>
           <Input
             id="nhis"
+            className="h-11"
             placeholder="e.g. NHIS-123456"
             value={nhisNumber}
             onChange={(e) => setNhisNumber(e.target.value)}
             aria-invalid={!!errors.nhisNumber}
           />
-          {errors.nhisNumber && (
-            <p className="text-xs text-destructive">{errors.nhisNumber}</p>
-          )}
+          {errors.nhisNumber && <p className="text-xs text-destructive">{errors.nhisNumber}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="dob">Date of Birth</Label>
           <Input
             id="dob"
+            className="h-11"
             type="date"
             max={new Date().toISOString().split("T")[0]}
             value={dob}
@@ -124,17 +120,19 @@ export function AuthShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+    <div className="relative flex min-h-[calc(100dvh-4rem)] items-start justify-center px-4 py-8 sm:items-center sm:py-12">
       <div
         aria-hidden
         className="absolute inset-0 -z-10"
         style={{ background: "var(--gradient-soft)" }}
       />
       <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-[var(--shadow-elegant)]">
+        <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-elegant)] sm:p-8">
           <div className="mb-6 text-center">
-            <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
+            <h1 className="text-xl font-bold text-foreground sm:text-2xl">{title}</h1>
+            <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-muted-foreground">
+              {subtitle}
+            </p>
           </div>
           {children}
         </div>

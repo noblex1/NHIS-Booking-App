@@ -1,18 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuthStore } from "@/lib/auth-store";
-import {
-  CalendarPlus,
-  ListChecks,
-  ShieldCheck,
-  Clock,
-  ArrowRight,
-} from "lucide-react";
+import { CalendarPlus, ListChecks, ShieldCheck, Clock, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — NHIS Booking" },
+      { title: "Dashboard - NHIS Booking" },
       { name: "description", content: "Your NHIS dashboard." },
     ],
   }),
@@ -32,26 +26,22 @@ function DashboardPage() {
   const upcoming = appointments.filter((a) => a.status !== "Cancelled").length;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
         <p className="text-sm font-medium text-primary">Dashboard</p>
-        <h1 className="mt-1 text-3xl font-bold text-foreground sm:text-4xl">
-          Welcome, {user.fullName}
-        </h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">Welcome, {user.fullName}</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           NHIS #: <span className="font-medium text-foreground">{user.nhisNumber}</span>
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
         <StatCard icon={ListChecks} label="Upcoming" value={String(upcoming)} />
         <StatCard icon={Clock} label="Total visits" value={String(appointments.length)} />
         <StatCard icon={ShieldCheck} label="Coverage" value="Active" tone="secondary" />
       </div>
 
-      {/* Action cards */}
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
+      <div className="mt-6 grid gap-4 sm:mt-8 md:grid-cols-2 md:gap-5">
         <ActionCard
           to="/book"
           title="Book Appointment"
@@ -82,21 +72,17 @@ function StatCard({
   tone?: "primary" | "secondary";
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-transform hover:-translate-y-0.5">
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] transition-transform hover:-translate-y-0.5 sm:p-5">
       <div className="flex items-center gap-3">
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-            tone === "secondary"
-              ? "bg-secondary/10 text-secondary"
-              : "bg-primary/10 text-primary"
+            tone === "secondary" ? "bg-secondary/10 text-secondary" : "bg-primary/10 text-primary"
           }`}
         >
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">
-            {label}
-          </div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">{label}</div>
           <div className="text-2xl font-bold text-foreground">{value}</div>
         </div>
       </div>
@@ -119,9 +105,7 @@ function ActionCard({
 }) {
   return (
     <Link to={to} className="group block">
-      <div
-        className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)]"
-      >
+      <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-elegant)] sm:p-6">
         {gradient && (
           <div
             aria-hidden
@@ -130,17 +114,15 @@ function ActionCard({
           />
         )}
         <div
-          className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
-            gradient
-              ? "text-primary-foreground"
-              : "bg-secondary/10 text-secondary"
+          className={`flex h-11 w-11 items-center justify-center rounded-2xl sm:h-12 sm:w-12 ${
+            gradient ? "text-primary-foreground" : "bg-secondary/10 text-secondary"
           }`}
           style={gradient ? { background: "var(--gradient-hero)" } : undefined}
         >
-          <Icon className="h-6 w-6" />
+          <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold text-foreground">{title}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        <h3 className="mt-3 text-lg font-semibold text-foreground">{title}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>
         <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
           Continue
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
