@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { authStore, useAuthStore } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
-import { CalendarPlus, CalendarX, Calendar, Clock } from "lucide-react";
+import { CalendarPlus, CalendarX, Calendar, Clock, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { appointmentsApi, ApiError } from "@/lib/api-client";
 
 export const Route = createFileRoute("/appointments")({
   head: () => ({
@@ -20,17 +21,59 @@ export const Route = createFileRoute("/appointments")({
 function AppointmentsPage() {
   const { user, appointments } = useAuthStore();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) navigate({ to: "/login" });
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
+    }
+
+    // Fetch appointments from backend
+    const fetchAppointments = async () => {
+      try {
+        const response = await appointmentsApi.getMyAppointments();
+        authStore.setAppointments(response.appointments);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          toast.error("Failed to load appointments");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
   }, [user, navigate]);
 
   if (!user) return null;
 
-  const cancel = (id: string) => {
-    authStore.cancelAppointment(id);
-    toast.success("Appointment cancelled");
+  const cancel = async (id: string) => {
+    // Note: Backend doesn't have cancel endpoint yet, so we'll just update locally
+    // In a real app, you'd call an API endpoint here
+    setCancelling(id);
+    
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      
+      authStore.cancelAppointment(id);
+      toast.success("Appointment cancelled");
+    } catch (error) {
+      toast.error("Failed to cancel appointment");
+    } finally {
+      setCancelling(null);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const sorted = [...appointments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -91,8 +134,17 @@ function AppointmentsPage() {
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <StatusBadge status={a.status} />
                 {a.status === "Confirmed" && (
-                  <Button variant="outline" size="sm" onClick={() => cancel(a.id)}>
-                    Cancel
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => cancel(a.id)}
+                    disabled={cancelling === a.id}
+                  >
+                    {cancelling === a.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Cancel"
+                    )}
                   </Button>
                 )}
               </div>

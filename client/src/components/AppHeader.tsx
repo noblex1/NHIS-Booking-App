@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Heart, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore, authStore } from "@/lib/auth-store";
+import { authApi } from "@/lib/api-client";
 import { toast } from "sonner";
 
 export function AppHeader() {
@@ -9,7 +10,12 @@ export function AppHeader() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    // Clear token from API client
+    authApi.logout();
+    
+    // Clear local state
     authStore.logout();
+    
     toast.success("Logged out successfully");
     navigate({ to: "/" });
   };

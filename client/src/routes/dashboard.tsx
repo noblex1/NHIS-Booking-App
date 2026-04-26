@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "@/lib/auth-store";
-import { CalendarPlus, ListChecks, ShieldCheck, Clock, ArrowRight } from "lucide-react";
+import { CalendarPlus, ListChecks, ShieldCheck, Clock, ArrowRight, Loader2 } from "lucide-react";
+import { appointmentsApi, ApiError } from "@/lib/api-client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -16,12 +18,42 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardPage() {
   const { user, appointments } = useAuthStore();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) navigate({ to: "/login" });
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
+    }
+
+    // Fetch appointments from backend
+    const fetchAppointments = async () => {
+      try {
+        const response = await appointmentsApi.getMyAppointments();
+        // Store appointments in auth store
+        const { authStore } = await import("@/lib/auth-store");
+        authStore.setAppointments(response.appointments);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          toast.error("Failed to load appointments");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
   }, [user, navigate]);
 
   if (!user) return null;
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const upcoming = appointments.filter((a) => a.status !== "Cancelled").length;
 
@@ -32,6 +64,9 @@ function DashboardPage() {
         <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">Welcome, {user.fullName}</h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           NHIS #: <span className="font-medium text-foreground">{user.nhisNumber}</span>
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Email: <span className="font-medium text-foreground">{user.email}</span>
         </p>
       </div>
 

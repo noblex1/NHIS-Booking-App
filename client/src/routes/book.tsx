@@ -15,6 +15,7 @@ import { CalendarCheck, CheckCircle2, Loader2 } from "lucide-react";
 import { authStore, useAuthStore } from "@/lib/auth-store";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { appointmentsApi, ApiError } from "@/lib/api-client";
 
 export const Route = createFileRoute("/book")({
   head: () => ({
@@ -26,25 +27,6 @@ export const Route = createFileRoute("/book")({
   component: BookPage,
 });
 
-const TIME_SLOTS = [
-  "08:30 AM",
-  "09:00 AM",
-  "09:30 AM",
-  "10:00 AM",
-  "10:30 AM",
-  "11:00 AM",
-  "11:30 AM",
-  "12:00 PM",
-  "01:00 PM",
-  "01:30 PM",
-  "02:00 PM",
-  "02:30 PM",
-  "03:00 PM",
-  "03:30 PM",
-  "04:00 PM",
-];
-const UNAVAILABLE = new Set(["09:00 AM", "11:00 AM", "02:00 PM"]);
-
 function BookPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
@@ -53,26 +35,84 @@ function BookPage() {
   const [confirming, setConfirming] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [done, setDone] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => {
     if (!user) navigate({ to: "/login" });
   }, [user, navigate]);
 
+  // Fetch available slots when date changes
+  useEffect(() => {
+    if (!date) {
+      setAvailableSlots([]);
+      setBookedSlots([]);
+      return;
+    }
+
+    const fetchSlots = async () => {
+      setLoadingSlots(true);
+      try {
+        const dateStr = format(date, "yyyy-MM-dd");
+        const response = await appointmentsApi.getAvailableSlots(dateStr);
+        setAvailableSlots(response.availableSlots);
+        setBookedSlots(response.bookedSlots);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          toast.error("Failed to load available slots");
+        }
+        setAvailableSlots([]);
+        setBookedSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+
+    fetchSlots();
+  }, [date]);
+
   if (!user) return null;
 
   const handleConfirm = async () => {
     if (!date || !slot) return;
+    
     setConfirming(true);
-    await new Promise((r) => setTimeout(r, 900));
-    authStore.addAppointment({
-      id: crypto.randomUUID(),
-      date: date.toISOString(),
-      time: slot,
-      status: "Confirmed",
-    });
-    setConfirming(false);
-    setDone(true);
-    toast.success("Appointment confirmed!");
+    
+    try {
+      const dateStr = format(date, "yyyy-MM-dd");
+      const response = await appointmentsApi.createAppointment({
+        date: dateStr,
+        timeSlot: slot,
+      });
+
+      // Add appointment to local store
+      authStore.addAppointment(response.appointment);
+      
+      setConfirming(false);
+      setDone(true);
+      toast.success("Appointment confirmed! Check your email for confirmation.");
+    } catch (error) {
+      setConfirming(false);
+      if (error instanceof ApiError) {
+        toast.error(error.message);
+        
+        // If slot is already booked, refresh available slots
+        if (error.status === 409) {
+          setShowModal(false);
+          setSlot(null);
+          // Trigger refresh of slots
+          if (date) {
+            const dateStr = format(date, "yyyy-MM-dd");
+            const response = await appointmentsApi.getAvailableSlots(dateStr);
+            setAvailableSlots(response.availableSlots);
+            setBookedSlots(response.bookedSlots);
+          }
+        }
+      } else {
+        toast.error("Failed to book appointment. Please try again.");
+      }
+    }
   };
 
   const open = () => {
@@ -87,6 +127,25 @@ function BookPage() {
     setShowModal(true);
     setDone(false);
   };
+
+  // All time slots for display
+  const ALL_TIME_SLOTS = [
+    "08:30 AM",
+    "09:00 AM",
+    "09:30 AM",
+    "10:00 AM",
+    "10:30 AM",
+    "11:00 AM",
+    "11:30 AM",
+    "12:00 PM",
+    "01:00 PM",
+    "01:30 PM",
+    "02:00 PM",
+    "02:30 PM",
+    "03:00 PM",
+    "03:30 PM",
+    "04:00 PM",
+  ];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -130,32 +189,48 @@ function BookPage() {
               <CalendarCheck className="h-10 w-10 opacity-40" />
               <p className="mt-2 text-sm">Select a date to see available slots</p>
             </div>
-          ) : (
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {TIME_SLOTS.map((s) => {
-                const disabled = UNAVAILABLE.has(s);
-                const active = slot === s;
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => setSlot(s)}
-                    className={cn(
-                      "rounded-xl border px-3 py-2.5 text-sm font-medium transition-all",
-                      disabled &&
-                        "cursor-not-allowed border-border bg-muted text-muted-foreground/50 line-through",
-                      !disabled &&
-                        !active &&
-                        "border-border bg-background text-foreground hover:border-primary/50 hover:bg-primary/5",
-                      active && "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-card)]",
-                    )}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
+          ) : loadingSlots ? (
+            <div className="mt-8 flex flex-col items-center justify-center text-center sm:mt-10">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="mt-2 text-sm text-muted-foreground">Loading available slots...</p>
             </div>
+          ) : (
+            <>
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {ALL_TIME_SLOTS.map((s) => {
+                  const isBooked = bookedSlots.includes(s);
+                  const isAvailable = availableSlots.includes(s);
+                  const disabled = isBooked || !isAvailable;
+                  const active = slot === s;
+                  
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => setSlot(s)}
+                      className={cn(
+                        "rounded-xl border px-3 py-2.5 text-sm font-medium transition-all",
+                        disabled &&
+                          "cursor-not-allowed border-border bg-muted text-muted-foreground/50 line-through",
+                        !disabled &&
+                          !active &&
+                          "border-border bg-background text-foreground hover:border-primary/50 hover:bg-primary/5",
+                        active && "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-card)]",
+                      )}
+                    >
+                      {s}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              {availableSlots.length === 0 && (
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                  No available slots for this date. Please select another date.
+                </p>
+              )}
+            </>
           )}
 
           <div className="mt-6 flex flex-col gap-3">
@@ -171,7 +246,7 @@ function BookPage() {
                 "No selection yet"
               )}
             </div>
-            <Button size="lg" onClick={open} disabled={!date || !slot} className="w-full sm:w-auto">
+            <Button size="lg" onClick={open} disabled={!date || !slot || loadingSlots} className="w-full sm:w-auto">
               Confirm Appointment
             </Button>
           </div>
@@ -192,7 +267,7 @@ function BookPage() {
                   <span className="font-medium text-foreground">
                     {date && format(date, "EEEE, MMM d")} at {slot}
                   </span>
-                  .
+                  . A confirmation email has been sent to {user.email}.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="gap-2 sm:justify-center">
