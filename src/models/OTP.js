@@ -2,10 +2,11 @@ const mongoose = require("mongoose");
 
 const otpSchema = new mongoose.Schema(
   {
-    phoneNumber: {
+    email: {
       type: String,
       required: true,
       trim: true,
+      lowercase: true,
       index: true,
     },
     otpHash: {
@@ -25,7 +26,7 @@ const otpSchema = new mongoose.Schema(
   { timestamps: { createdAt: true, updatedAt: false } },
 );
 
-otpSchema.index({ phoneNumber: 1, createdAt: -1 });
+otpSchema.index({ email: 1, createdAt: -1 });
 otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model("OTP", otpSchema);

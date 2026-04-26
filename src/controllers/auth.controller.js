@@ -33,14 +33,16 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const register = asyncHandler(async (req, res) => {
-  const { fullName, dateOfBirth, phoneNumber } = req.body;
+  const { fullName, dateOfBirth, email } = req.body;
   const normalizedDob = normalizeDateOnly(dateOfBirth);
   if (!normalizedDob) {
     throw new ApiError(400, "Invalid dateOfBirth");
   }
 
+  const cleanEmail = email.trim().toLowerCase();
+
   const existingVerified = await User.findOne({
-    phoneNumber: phoneNumber.trim(),
+    email: cleanEmail,
     isVerified: true,
   });
 
@@ -49,33 +51,33 @@ const register = asyncHandler(async (req, res) => {
   }
 
   await User.findOneAndUpdate(
-    { phoneNumber: phoneNumber.trim() },
+    { email: cleanEmail },
     {
       $set: {
         fullName: fullName.trim(),
         dateOfBirth: normalizedDob,
-        phoneNumber: phoneNumber.trim(),
+        email: cleanEmail,
         isVerified: false,
       },
     },
     { upsert: true, new: true, setDefaultsOnInsert: true },
   );
 
-  await createAndSendOtp(phoneNumber.trim());
+  await createAndSendOtp(cleanEmail);
 
   res.status(200).json({
     success: true,
-    message: "OTP sent successfully",
+    message: "OTP sent to your email",
   });
 });
 
 const verifyOtp = asyncHandler(async (req, res) => {
-  const { phoneNumber, otpCode } = req.body;
-  const cleanPhone = phoneNumber.trim();
+  const { email, otpCode } = req.body;
+  const cleanEmail = email.trim().toLowerCase();
 
-  await verifyOtpCode(cleanPhone, otpCode.trim());
+  await verifyOtpCode(cleanEmail, otpCode.trim());
 
-  const user = await User.findOne({ phoneNumber: cleanPhone });
+  const user = await User.findOne({ email: cleanEmail });
   if (!user) {
     throw new ApiError(404, "Registration not found. Please register first.");
   }
@@ -97,15 +99,15 @@ const verifyOtp = asyncHandler(async (req, res) => {
 });
 
 const resendOtp = asyncHandler(async (req, res) => {
-  const { phoneNumber } = req.body;
-  const cleanPhone = phoneNumber.trim();
+  const { email } = req.body;
+  const cleanEmail = email.trim().toLowerCase();
 
-  const user = await User.findOne({ phoneNumber: cleanPhone, isVerified: false });
+  const user = await User.findOne({ email: cleanEmail, isVerified: false });
   if (!user) {
-    throw new ApiError(404, "No pending registration for this phone number");
+    throw new ApiError(404, "No pending registration for this email");
   }
 
-  await createAndSendOtp(cleanPhone);
+  await createAndSendOtp(cleanEmail);
 
   res.status(200).json({
     success: true,

@@ -19,11 +19,12 @@ const userSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    phoneNumber: {
+    email: {
       type: String,
       required: true,
       unique: true,
       trim: true,
+      lowercase: true,
       index: true,
     },
     isVerified: {

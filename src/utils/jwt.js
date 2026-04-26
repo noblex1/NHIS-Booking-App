@@ -8,7 +8,7 @@ function signAuthToken(user) {
     {
       sub: user._id.toString(),
       nhisNumber: user.nhisNumber,
-      phoneNumber: user.phoneNumber,
+      email: user.email,
     },
     secret,
     { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },

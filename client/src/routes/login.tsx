@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Loader2 } from "lucide-react";
 import { authStore } from "@/lib/auth-store";
+import { authApi, ApiError } from "@/lib/api-client";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -24,20 +25,21 @@ const loginSchema = z.object({
     .trim()
     .min(6, "NHIS number must be at least 6 characters")
     .max(20, "NHIS number is too long"),
-  dob: z.string().min(1, "Date of birth is required"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
 });
 
 function LoginPage() {
   const navigate = useNavigate();
   const [nhisNumber, setNhisNumber] = useState("");
-  const [dob, setDob] = useState("");
-  const [errors, setErrors] = useState<{ nhisNumber?: string; dob?: string }>({});
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [errors, setErrors] = useState<{ nhisNumber?: string; dateOfBirth?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    const parsed = loginSchema.safeParse({ nhisNumber, dob });
+    
+    const parsed = loginSchema.safeParse({ nhisNumber, dateOfBirth });
     if (!parsed.success) {
       const fieldErrors: typeof errors = {};
       parsed.error.issues.forEach((iss) => {
@@ -46,16 +48,34 @@ function LoginPage() {
       setErrors(fieldErrors);
       return;
     }
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 900));
 
-    authStore.login({
-      fullName: "Patient",
-      nhisNumber: parsed.data.nhisNumber,
-      dob: parsed.data.dob,
-    });
-    toast.success("Welcome back!");
-    navigate({ to: "/dashboard" });
+    setLoading(true);
+
+    try {
+      const response = await authApi.login(parsed.data);
+
+      // Store user and token
+      authStore.setAuth(response.user, response.token);
+
+      toast.success("Welcome back!");
+      navigate({ to: "/dashboard" });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        toast.error(error.message);
+        
+        // Handle specific error cases
+        if (error.status === 401) {
+          setErrors({ 
+            nhisNumber: "Invalid credentials",
+            dateOfBirth: "Invalid credentials"
+          });
+        }
+      } else {
+        toast.error("Login failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,6 +90,7 @@ function LoginPage() {
             value={nhisNumber}
             onChange={(e) => setNhisNumber(e.target.value)}
             aria-invalid={!!errors.nhisNumber}
+            disabled={loading}
           />
           {errors.nhisNumber && <p className="text-xs text-destructive">{errors.nhisNumber}</p>}
         </div>
@@ -81,11 +102,12 @@ function LoginPage() {
             className="h-11"
             type="date"
             max={new Date().toISOString().split("T")[0]}
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            aria-invalid={!!errors.dob}
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            aria-invalid={!!errors.dateOfBirth}
+            disabled={loading}
           />
-          {errors.dob && <p className="text-xs text-destructive">{errors.dob}</p>}
+          {errors.dateOfBirth && <p className="text-xs text-destructive">{errors.dateOfBirth}</p>}
         </div>
 
         <Button type="submit" className="w-full" size="lg" disabled={loading}>

@@ -3,7 +3,7 @@ const ApiError = require("../utils/ApiError");
 const asyncHandler = require("../utils/asyncHandler");
 const { DEFAULT_TIME_SLOTS, APPOINTMENT_STATUS } = require("../config/constants");
 const { isPastDate, normalizeDateOnly } = require("../utils/date");
-const { sendSMS } = require("../services/sms.service");
+const { sendAppointmentConfirmation } = require("../services/email.service");
 
 const createAppointment = asyncHandler(async (req, res) => {
   const { date, timeSlot } = req.body;
@@ -37,14 +37,15 @@ const createAppointment = asyncHandler(async (req, res) => {
     status: APPOINTMENT_STATUS.CONFIRMED,
   });
 
-  await sendSMS(
-    req.user.phoneNumber,
-    `Appointment confirmed for ${normalizedDate.toISOString().slice(0, 10)} at ${timeSlot}.`,
+  await sendAppointmentConfirmation(
+    req.user.email,
+    normalizedDate.toISOString().slice(0, 10),
+    timeSlot,
   );
 
   res.status(201).json({
     success: true,
-    message: "सफलता: appointment booked successfully",
+    message: "Appointment booked successfully",
     appointment,
   });
 });

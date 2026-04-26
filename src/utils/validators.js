@@ -1,15 +1,11 @@
 const { body, query } = require("express-validator");
 
-const phoneRegex = /^\+?[0-9\s-]{7,20}$/;
 const nhisRegex = /^[A-Za-z0-9-]{6,20}$/;
 
 const registerValidator = [
   body("fullName").trim().isLength({ min: 2, max: 100 }).withMessage("Full name is required"),
   body("dateOfBirth").isISO8601().withMessage("dateOfBirth must be a valid date (YYYY-MM-DD)"),
-  body("phoneNumber")
-    .trim()
-    .matches(phoneRegex)
-    .withMessage("phoneNumber must be a valid phone format"),
+  body("email").trim().isEmail().normalizeEmail().withMessage("Valid email is required"),
 ];
 
 const loginValidator = [
@@ -18,10 +14,7 @@ const loginValidator = [
 ];
 
 const otpVerifyValidator = [
-  body("phoneNumber")
-    .trim()
-    .matches(phoneRegex)
-    .withMessage("phoneNumber must be a valid phone format"),
+  body("email").trim().isEmail().normalizeEmail().withMessage("Valid email is required"),
   body("otpCode")
     .trim()
     .isLength({ min: 4, max: 8 })
@@ -30,10 +23,7 @@ const otpVerifyValidator = [
 ];
 
 const resendOtpValidator = [
-  body("phoneNumber")
-    .trim()
-    .matches(phoneRegex)
-    .withMessage("phoneNumber must be a valid phone format"),
+  body("email").trim().isEmail().normalizeEmail().withMessage("Valid email is required"),
 ];
 
 const createAppointmentValidator = [

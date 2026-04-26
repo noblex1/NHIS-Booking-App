@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, UserPlus } from "lucide-react";
 import { authStore } from "@/lib/auth-store";
+import { authApi, ApiError } from "@/lib/api-client";
 import { AuthShell } from "./login";
 
 export const Route = createFileRoute("/register")({
@@ -21,36 +22,54 @@ export const Route = createFileRoute("/register")({
 
 const schema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name").max(100),
-  dob: z.string().min(1, "Date of birth is required"),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^\+?[0-9\s-]{7,20}$/, "Enter a valid phone number"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  email: z.string().trim().email("Enter a valid email address"),
 });
 
 function RegisterPage() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
-  const [dob, setDob] = useState("");
-  const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    const parsed = schema.safeParse({ fullName, dob, phone });
+    
+    const parsed = schema.safeParse({ fullName, dateOfBirth, email });
     if (!parsed.success) {
       const fe: Record<string, string> = {};
       parsed.error.issues.forEach((i) => (fe[i.path[0] as string] = i.message));
       setErrors(fe);
       return;
     }
+
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    authStore.startRegistration(parsed.data);
-    toast.success("Verification code sent to your phone");
-    navigate({ to: "/verify" });
+
+    try {
+      const response = await authApi.register(parsed.data);
+      
+      // Store registration data for verification page
+      authStore.startRegistration(parsed.data);
+      
+      toast.success(response.message || "Verification code sent to your email");
+      navigate({ to: "/verify" });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        toast.error(error.message);
+        
+        // Handle specific error cases
+        if (error.status === 409) {
+          setErrors({ email: "Email already registered. Please login." });
+        }
+      } else {
+        toast.error("Failed to register. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -65,6 +84,7 @@ function RegisterPage() {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             aria-invalid={!!errors.fullName}
+            disabled={loading}
           />
           {errors.fullName && <p className="text-xs text-destructive">{errors.fullName}</p>}
         </div>
@@ -76,25 +96,27 @@ function RegisterPage() {
             className="h-11"
             type="date"
             max={new Date().toISOString().split("T")[0]}
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
-            aria-invalid={!!errors.dob}
+            value={dateOfBirth}
+            onChange={(e) => setDateOfBirth(e.target.value)}
+            aria-invalid={!!errors.dateOfBirth}
+            disabled={loading}
           />
-          {errors.dob && <p className="text-xs text-destructive">{errors.dob}</p>}
+          {errors.dateOfBirth && <p className="text-xs text-destructive">{errors.dateOfBirth}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number</Label>
+          <Label htmlFor="email">Email Address</Label>
           <Input
-            id="phone"
+            id="email"
             className="h-11"
-            type="tel"
-            placeholder="+233 20 123 4567"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            aria-invalid={!!errors.phone}
+            type="email"
+            placeholder="jane.doe@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={!!errors.email}
+            disabled={loading}
           />
-          {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+          {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
         </div>
 
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
