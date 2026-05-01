@@ -83,6 +83,13 @@ function LandingPage() {
 
           <div className="relative animate-in fade-in slide-in-from-bottom-6 duration-1000">
             <div className="relative rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-elegant)] sm:p-8">
+              <div className="mb-5 rounded-2xl border border-border/60 bg-background/70 p-4 shadow-sm backdrop-blur-sm">
+                <img
+                  src="/logo.jpeg"
+                  alt="NHIS logo"
+                  className="mx-auto h-24 w-auto rounded-xl object-contain sm:h-28"
+                />
+              </div>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <div

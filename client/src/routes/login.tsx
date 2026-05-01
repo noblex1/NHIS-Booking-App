@@ -150,6 +150,13 @@ export function AuthShell({
       />
       <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-elegant)] sm:p-8">
+          <div className="mb-5 rounded-2xl border border-border/60 bg-background/70 p-4 shadow-sm backdrop-blur-sm">
+            <img
+              src="/logo.jpeg"
+              alt="NHIS logo"
+              className="mx-auto h-20 w-auto rounded-xl object-contain sm:h-24"
+            />
+          </div>
           <div className="mb-6 text-center">
             <h1 className="text-xl font-bold text-foreground sm:text-2xl">{title}</h1>
             <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-muted-foreground">
