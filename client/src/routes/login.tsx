@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { authStore } from "@/lib/auth-store";
+import { authStore, useAuthStore } from "@/lib/auth-store";
 import { authApi, ApiError } from "@/lib/api-client";
 
 export const Route = createFileRoute("/login")({
@@ -25,10 +25,18 @@ const loginSchema = z.object({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [user, navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

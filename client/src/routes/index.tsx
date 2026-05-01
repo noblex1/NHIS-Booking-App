@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar, ShieldCheck, Clock, HeartPulse, ArrowRight } from "lucide-react";
+import { useAuthStore } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -17,6 +19,15 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate({ to: "/dashboard" });
+    }
+  }, [user, navigate]);
   return (
     <div className="relative overflow-hidden">
       <div

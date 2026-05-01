@@ -92,8 +92,13 @@ function VerifyPage() {
       // Store user and token
       authStore.completeRegistration(response.user, response.token);
 
-      toast.success(`Account verified! Your NHIS #: ${response.user.nhisNumber}`);
-      navigate({ to: "/dashboard" });
+      // Show success message
+      toast.success("Account verified successfully! Redirecting to dashboard...");
+      
+      // Redirect to dashboard
+      setTimeout(() => {
+        navigate({ to: "/dashboard" });
+      }, 500);
     } catch (error) {
       if (error instanceof ApiError) {
         toast.error(error.message);
