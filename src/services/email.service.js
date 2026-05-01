@@ -2,26 +2,45 @@ const nodemailer = require("nodemailer");
 const logger = require("../utils/logger");
 
 /**
- * Create Brevo SMTP transporter
+ * Create SMTP transporter
+ * Supports Gmail, Outlook, Yahoo, and custom SMTP servers
  */
-function createBrevoTransporter() {
-  const user = process.env.BREVO_SMTP_USER;
-  const pass = process.env.BREVO_SMTP_PASS;
+function createEmailTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT) || 587;
+  const secure = process.env.SMTP_SECURE === "true"; // true for 465, false for other ports
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
 
-  if (!user || !pass) {
-    logger.warn("Brevo SMTP credentials missing. Email sending will be logged only.");
+  if (!host || !user || !pass) {
+    logger.warn("SMTP credentials missing. Email sending will be logged only.");
+    logger.warn("Required: SMTP_HOST, SMTP_USER, SMTP_PASS");
     return null;
   }
 
-  return nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
-    port: 587,
-    secure: false, // Use TLS
+  const transportConfig = {
+    host,
+    port,
+    secure,
     auth: {
       user,
       pass,
     },
+  };
+
+  // Add additional options for Gmail
+  if (host.includes("gmail")) {
+    transportConfig.service = "gmail";
+  }
+
+  logger.info("Email transporter configured", {
+    host,
+    port,
+    secure,
+    user,
   });
+
+  return nodemailer.createTransport(transportConfig);
 }
 
 /**
@@ -30,10 +49,10 @@ function createBrevoTransporter() {
  * @param {string} otpCode - OTP code to send
  */
 async function sendOtpEmail(to, otpCode) {
-  const transporter = createBrevoTransporter();
+  const transporter = createEmailTransporter();
 
   const expiryMinutes = process.env.OTP_EXPIRY_MINUTES || 5;
-  const fromEmail = process.env.BREVO_SMTP_USER || "noreply@nhis.com";
+  const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_USER || "noreply@nhis.com";
   const fromName = process.env.EMAIL_FROM_NAME || "NHIS Appointment System";
 
   const mailOptions = {
@@ -163,9 +182,9 @@ async function sendOtpEmail(to, otpCode) {
  * @param {string} timeSlot - Appointment time slot
  */
 async function sendAppointmentConfirmation(to, date, timeSlot) {
-  const transporter = createBrevoTransporter();
+  const transporter = createEmailTransporter();
 
-  const fromEmail = process.env.BREVO_SMTP_USER || "noreply@nhis.com";
+  const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_USER || "noreply@nhis.com";
   const fromName = process.env.EMAIL_FROM_NAME || "NHIS Appointment System";
 
   const mailOptions = {
