@@ -6,11 +6,12 @@ const registerValidator = [
   body("fullName").trim().isLength({ min: 2, max: 100 }).withMessage("Full name is required"),
   body("dateOfBirth").isISO8601().withMessage("dateOfBirth must be a valid date (YYYY-MM-DD)"),
   body("email").trim().isEmail().normalizeEmail().withMessage("Valid email is required"),
+  body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
 ];
 
 const loginValidator = [
-  body("nhisNumber").trim().matches(nhisRegex).withMessage("Invalid NHIS number format"),
-  body("dateOfBirth").isISO8601().withMessage("dateOfBirth must be a valid date (YYYY-MM-DD)"),
+  body("email").trim().isEmail().normalizeEmail().withMessage("Valid email is required"),
+  body("password").notEmpty().withMessage("Password is required"),
 ];
 
 const otpVerifyValidator = [

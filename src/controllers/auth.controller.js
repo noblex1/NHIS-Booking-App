@@ -7,20 +7,21 @@ const { generateUniqueNhisNumber } = require("../utils/nhis");
 const { createAndSendOtp, verifyOtpCode } = require("../services/otp.service");
 
 const login = asyncHandler(async (req, res) => {
-  const { nhisNumber, dateOfBirth } = req.body;
-  const normalizedDob = normalizeDateOnly(dateOfBirth);
-  if (!normalizedDob) {
-    throw new ApiError(400, "Invalid dateOfBirth");
-  }
+  const { email, password } = req.body;
+  const cleanEmail = email.trim().toLowerCase();
 
   const user = await User.findOne({
-    nhisNumber: nhisNumber.trim(),
-    dateOfBirth: normalizedDob,
+    email: cleanEmail,
     isVerified: true,
-  }).select("-__v");
+  });
 
   if (!user) {
-    throw new ApiError(401, "Invalid NHIS number or DOB");
+    throw new ApiError(401, "Invalid email or password");
+  }
+
+  const isPasswordValid = await user.comparePassword(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid email or password");
   }
 
   const token = signAuthToken(user);
@@ -33,7 +34,7 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const register = asyncHandler(async (req, res) => {
-  const { fullName, dateOfBirth, email } = req.body;
+  const { fullName, dateOfBirth, email, password } = req.body;
   const normalizedDob = normalizeDateOnly(dateOfBirth);
   if (!normalizedDob) {
     throw new ApiError(400, "Invalid dateOfBirth");
@@ -50,18 +51,17 @@ const register = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User already exists. Please login.");
   }
 
-  await User.findOneAndUpdate(
-    { email: cleanEmail },
-    {
-      $set: {
-        fullName: fullName.trim(),
-        dateOfBirth: normalizedDob,
-        email: cleanEmail,
-        isVerified: false,
-      },
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
-  );
+  // Delete any unverified user with same email
+  await User.deleteOne({ email: cleanEmail, isVerified: false });
+
+  // Create new user
+  const user = await User.create({
+    fullName: fullName.trim(),
+    dateOfBirth: normalizedDob,
+    email: cleanEmail,
+    password: password,
+    isVerified: false,
+  });
 
   await createAndSendOtp(cleanEmail);
 

@@ -71,6 +71,7 @@ export interface RegisterRequest {
   fullName: string;
   dateOfBirth: string; // YYYY-MM-DD
   email: string;
+  password: string;
 }
 
 export interface RegisterResponse {
@@ -111,8 +112,8 @@ export interface ResendOtpResponse {
 }
 
 export interface LoginRequest {
-  nhisNumber: string;
-  dateOfBirth: string; // YYYY-MM-DD
+  email: string;
+  password: string;
 }
 
 export interface LoginResponse {

@@ -4,42 +4,37 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { LogIn, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { authStore } from "@/lib/auth-store";
 import { authApi, ApiError } from "@/lib/api-client";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Login - NHIS Booking" },
-      { name: "description", content: "Login to your NHIS account to book appointments." },
+      { title: "Sign In - NHIS Booking" },
+      { name: "description", content: "Sign in to your NHIS account to book appointments." },
     ],
   }),
   component: LoginPage,
 });
 
 const loginSchema = z.object({
-  nhisNumber: z
-    .string()
-    .trim()
-    .min(6, "NHIS number must be at least 6 characters")
-    .max(20, "NHIS number is too long"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  email: z.string().trim().email("Enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [nhisNumber, setNhisNumber] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [errors, setErrors] = useState<{ nhisNumber?: string; dateOfBirth?: string }>({});
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
     
-    const parsed = loginSchema.safeParse({ nhisNumber, dateOfBirth });
+    const parsed = loginSchema.safeParse({ email, password });
     if (!parsed.success) {
       const fieldErrors: typeof errors = {};
       parsed.error.issues.forEach((iss) => {
@@ -66,8 +61,8 @@ function LoginPage() {
         // Handle specific error cases
         if (error.status === 401) {
           setErrors({ 
-            nhisNumber: "Invalid credentials",
-            dateOfBirth: "Invalid credentials"
+            email: "Invalid credentials",
+            password: "Invalid credentials"
           });
         }
       } else {
@@ -79,56 +74,84 @@ function LoginPage() {
   };
 
   return (
-    <AuthShell title="Welcome back" subtitle="Login to your NHIS account to manage appointments">
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="nhis">NHIS Number</Label>
-          <Input
-            id="nhis"
-            className="h-11"
-            placeholder="e.g. NHIS-123456"
-            value={nhisNumber}
-            onChange={(e) => setNhisNumber(e.target.value)}
-            aria-invalid={!!errors.nhisNumber}
-            disabled={loading}
-          />
-          {errors.nhisNumber && <p className="text-xs text-destructive">{errors.nhisNumber}</p>}
+    <div className="relative flex min-h-screen items-center justify-center px-4" style={{
+      background: "linear-gradient(135deg, #4a7c7e 0%, #2d4a4b 100%)"
+    }}>
+      <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="rounded-3xl bg-white p-8 shadow-2xl sm:p-12">
+          {/* Logo */}
+          <div className="mb-8 flex justify-center">
+            <img
+              src="/logo.jpeg"
+              alt="NHIS logo"
+              className="h-32 w-auto object-contain sm:h-40"
+            />
+          </div>
+
+          {/* Title */}
+          <h1 className="mb-8 text-center text-3xl font-bold text-gray-800">
+            Sign In
+          </h1>
+
+          {/* Form */}
+          <form onSubmit={onSubmit} className="space-y-6">
+            <div>
+              <Input
+                type="email"
+                placeholder="username or email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-14 rounded-lg border-2 border-gray-300 px-4 text-base placeholder:text-gray-500 focus:border-[#4a7c7e] focus:ring-0"
+                disabled={loading}
+                aria-invalid={!!errors.email}
+              />
+              {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+            </div>
+
+            <div>
+              <Input
+                type="password"
+                placeholder="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-14 rounded-lg border-2 border-gray-300 px-4 text-base placeholder:text-gray-500 focus:border-[#4a7c7e] focus:ring-0"
+                disabled={loading}
+                aria-invalid={!!errors.password}
+              />
+              {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
+            </div>
+
+            <Button 
+              type="submit" 
+              className="h-14 w-full rounded-full bg-[#1e4d7b] text-base font-semibold uppercase tracking-wide text-white shadow-lg transition-all hover:bg-[#163a5f] hover:shadow-xl disabled:opacity-50" 
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                "SIGN IN"
+              )}
+            </Button>
+          </form>
+
+          {/* Links */}
+          <div className="mt-6 space-y-2 text-center text-sm">
+            <p className="text-gray-600">
+              Forgot Password?{" "}
+              <Link to="/reset-password" className="font-medium text-gray-800 hover:underline">
+                Reset
+              </Link>
+            </p>
+            <p className="text-gray-600">
+              No Account?{" "}
+              <Link to="/register" className="font-medium text-gray-800 hover:underline">
+                Request Account
+              </Link>
+            </p>
+          </div>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="dob">Date of Birth</Label>
-          <Input
-            id="dob"
-            className="h-11"
-            type="date"
-            max={new Date().toISOString().split("T")[0]}
-            value={dateOfBirth}
-            onChange={(e) => setDateOfBirth(e.target.value)}
-            aria-invalid={!!errors.dateOfBirth}
-            disabled={loading}
-          />
-          {errors.dateOfBirth && <p className="text-xs text-destructive">{errors.dateOfBirth}</p>}
-        </div>
-
-        <Button type="submit" className="w-full" size="lg" disabled={loading}>
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              <LogIn className="h-4 w-4" />
-              Login
-            </>
-          )}
-        </Button>
-
-        <p className="text-center text-sm text-muted-foreground">
-          New user?{" "}
-          <Link to="/register" className="font-medium text-primary hover:underline">
-            Register here
-          </Link>
-        </p>
-      </form>
-    </AuthShell>
+      </div>
+    </div>
   );
 }
 
