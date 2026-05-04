@@ -1,6 +1,7 @@
 import { Outlet, createRootRoute, Link } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { AppHeader } from "@/components/AppHeader";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 function NotFoundComponent() {
   return (
@@ -36,6 +37,7 @@ function RootComponent() {
       <main className="flex-1">
         <Outlet />
       </main>
+      <MobileBottomNav />
       <Toaster richColors position="top-right" />
     </div>
   );

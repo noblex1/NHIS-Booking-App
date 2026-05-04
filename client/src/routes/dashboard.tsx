@@ -58,7 +58,7 @@ function DashboardPage() {
   const upcoming = appointments.filter((a) => a.status !== "Cancelled").length;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-8 md:py-8 sm:px-6">
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
         <p className="text-sm font-medium text-primary">Dashboard</p>
         <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">Welcome, {user.fullName}</h1>

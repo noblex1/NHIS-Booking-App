@@ -1,5 +1,62 @@
 const nodemailer = require("nodemailer");
+const sgMail = require("@sendgrid/mail");
 const logger = require("../utils/logger");
+
+function resolveFromAddress() {
+  const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_USER || "noreply@nhis.com";
+  const fromName = process.env.EMAIL_FROM_NAME || "NHIS Appointment System";
+  return {
+    fromEmail,
+    fromName,
+    fromHeader: `"${fromName}" <${fromEmail}>`,
+  };
+}
+
+/**
+ * Sends mail via SendGrid when SENDGRID_API_KEY is set; otherwise SMTP.
+ * If neither SendGrid nor SMTP is configured, returns false (caller logs dev-only behaviour).
+ */
+async function deliverMail(mailOptions, logLabel) {
+  const apiKey = process.env.SENDGRID_API_KEY?.trim();
+  if (apiKey) {
+    sgMail.setApiKey(apiKey);
+    try {
+      const [resp] = await sgMail.send({
+        to: mailOptions.to,
+        from: mailOptions.from,
+        subject: mailOptions.subject,
+        text: mailOptions.text,
+        html: mailOptions.html,
+      });
+      logger.info(`${logLabel} sent via SendGrid`, {
+        to: mailOptions.to,
+        statusCode: resp.statusCode,
+      });
+      return true;
+    } catch (error) {
+      const detail = error.response?.body
+        ? JSON.stringify(error.response.body)
+        : error.message;
+      logger.error(`SendGrid failed (${logLabel})`, {
+        to: mailOptions.to,
+        error: detail,
+      });
+      throw error;
+    }
+  }
+
+  const transporter = createEmailTransporter();
+  if (!transporter) {
+    return false;
+  }
+
+  const info = await transporter.sendMail(mailOptions);
+  logger.info(`${logLabel} sent via SMTP`, {
+    to: mailOptions.to,
+    messageId: info.messageId,
+  });
+  return true;
+}
 
 /**
  * Create SMTP transporter
@@ -49,14 +106,11 @@ function createEmailTransporter() {
  * @param {string} otpCode - OTP code to send
  */
 async function sendOtpEmail(to, otpCode) {
-  const transporter = createEmailTransporter();
-
+  const { fromHeader } = resolveFromAddress();
   const expiryMinutes = process.env.OTP_EXPIRY_MINUTES || 5;
-  const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_USER || "noreply@nhis.com";
-  const fromName = process.env.EMAIL_FROM_NAME || "NHIS Appointment System";
 
   const mailOptions = {
-    from: `"${fromName}" <${fromEmail}>`,
+    from: fromHeader,
     to,
     subject: "NHIS Verification Code",
     text: `Your NHIS verification code is: ${otpCode}\n\nThis code expires in ${expiryMinutes} minutes.\n\nIf you did not request this code, please ignore this email.`,
@@ -150,27 +204,17 @@ async function sendOtpEmail(to, otpCode) {
     `,
   };
 
-  // If no transporter (missing credentials), just log
-  if (!transporter) {
-    logger.info("Email would be sent (credentials missing):", {
-      to,
-      subject: mailOptions.subject,
-      otpCode,
-    });
-    return;
-  }
-
   try {
-    const info = await transporter.sendMail(mailOptions);
-    logger.info("OTP email sent successfully", {
-      to,
-      messageId: info.messageId,
-    });
+    const sent = await deliverMail(mailOptions, "OTP email");
+    if (!sent) {
+      logger.info("Email would be sent (no SendGrid key and SMTP not configured)", {
+        to,
+        subject: mailOptions.subject,
+        otpCode,
+      });
+    }
   } catch (error) {
-    logger.error("Failed to send OTP email", {
-      to,
-      error: error.message,
-    });
+    logger.error("Failed to send OTP email", { to, error: error.message });
     throw error;
   }
 }
@@ -182,13 +226,10 @@ async function sendOtpEmail(to, otpCode) {
  * @param {string} timeSlot - Appointment time slot
  */
 async function sendAppointmentConfirmation(to, date, timeSlot) {
-  const transporter = createEmailTransporter();
-
-  const fromEmail = process.env.EMAIL_FROM || process.env.SMTP_USER || "noreply@nhis.com";
-  const fromName = process.env.EMAIL_FROM_NAME || "NHIS Appointment System";
+  const { fromHeader } = resolveFromAddress();
 
   const mailOptions = {
-    from: `"${fromName}" <${fromEmail}>`,
+    from: fromHeader,
     to,
     subject: "NHIS Appointment Confirmation",
     text: `Your appointment has been confirmed for ${date} at ${timeSlot}.\n\nThank you for using NHIS Appointment System.`,
@@ -287,21 +328,18 @@ async function sendAppointmentConfirmation(to, date, timeSlot) {
     `,
   };
 
-  if (!transporter) {
-    logger.info("Appointment confirmation email would be sent (credentials missing):", {
-      to,
-      date,
-      timeSlot,
-    });
-    return;
-  }
-
   try {
-    const info = await transporter.sendMail(mailOptions);
-    logger.info("Appointment confirmation email sent successfully", {
-      to,
-      messageId: info.messageId,
-    });
+    const sent = await deliverMail(mailOptions, "Appointment confirmation email");
+    if (!sent) {
+      logger.info(
+        "Appointment confirmation would be sent (no SendGrid key and SMTP not configured)",
+        {
+          to,
+          date,
+          timeSlot,
+        },
+      );
+    }
   } catch (error) {
     logger.error("Failed to send appointment confirmation email", {
       to,
