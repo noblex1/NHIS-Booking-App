@@ -1,5 +1,5 @@
 /**
- * Test script for email (SendGrid if SENDGRID_API_KEY is set, else SMTP).
+ * Test script for email (Brevo if BREVO_API_KEY is set, else SMTP).
  *
  * Usage:
  *   node test-email.js your-email@example.com
@@ -16,15 +16,16 @@ if (!testEmail) {
   process.exit(1);
 }
 
-const hasSendGrid = Boolean(process.env.SENDGRID_API_KEY?.trim());
+const hasBrevo = Boolean(process.env.BREVO_API_KEY?.trim());
 const hasSmtp =
   process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
 
-if (!hasSendGrid && !hasSmtp) {
-  console.error("❌ Configure either SendGrid or SMTP in .env");
-  console.log("\nOption A — SendGrid (production):");
-  console.log("  SENDGRID_API_KEY=SG...");
+if (!hasBrevo && !hasSmtp) {
+  console.error("❌ Configure either Brevo or SMTP in .env");
+  console.log("\nOption A — Brevo (production):");
+  console.log("  BREVO_API_KEY=xkeysib-...");
   console.log("  EMAIL_FROM=verified-sender@yourdomain.com");
+  console.log("  Get API key: https://app.brevo.com/settings/keys/api");
   console.log("\nOption B — SMTP (local/dev):");
   console.log("  SMTP_HOST (e.g., smtp.gmail.com)");
   console.log("  SMTP_USER, SMTP_PASS");
@@ -34,8 +35,8 @@ if (!hasSendGrid && !hasSmtp) {
 async function testEmailService() {
   console.log("🧪 Testing email service\n");
   console.log("Configuration:");
-  if (hasSendGrid) {
-    console.log("  Provider: SendGrid (SENDGRID_API_KEY set)");
+  if (hasBrevo) {
+    console.log("  Provider: Brevo (BREVO_API_KEY set)");
     console.log(`  From: ${process.env.EMAIL_FROM || process.env.SMTP_USER || "(default)"}`);
   } else {
     console.log(`  Provider: SMTP (${process.env.SMTP_HOST})`);
@@ -60,21 +61,30 @@ async function testEmailService() {
     console.log("🎉 All tests passed!");
     console.log(`\n📬 Check your inbox at ${testEmail}`);
     console.log("   (Don't forget to check spam/junk folder)\n");
+    
+    if (hasBrevo) {
+      console.log("💡 Tip: Check Brevo dashboard for delivery status:");
+      console.log("   https://app.brevo.com/statistics/email\n");
+    }
   } catch (error) {
     console.error("❌ Test failed:", error.message);
     console.error("\nTroubleshooting:");
-    if (hasSendGrid) {
-      console.error("  1. SendGrid API key is valid (full access Mail Send)");
-      console.error("  2. EMAIL_FROM matches a verified sender in SendGrid");
+    if (hasBrevo) {
+      console.error("  Brevo Issues:");
+      console.error("  1. Verify your API key is correct");
+      console.error("     → Get from: https://app.brevo.com/settings/keys/api");
+      console.error("  2. Check if sender email is verified in Brevo");
+      console.error("     → https://app.brevo.com/senders");
+      console.error("  3. Check Brevo dashboard for errors");
+      console.error("     → https://app.brevo.com/statistics/email");
+      console.error("  4. Ensure you haven't exceeded daily limit (300 emails/day on free tier)");
     } else {
+      console.error("  SMTP Issues:");
       console.error("  1. Verify SMTP credentials are correct");
       console.error("  2. For Gmail, use App Password (not regular password)");
+      console.error("     → https://myaccount.google.com/apppasswords");
+      console.error("  3. Enable 2-Step Verification for Gmail");
     }
-    console.error("     → https://myaccount.google.com/apppasswords");
-    console.error("  3. Enable 2-Step Verification for Gmail");
-    console.error("  4. Check if 'Less secure app access' is enabled (if not using App Password)");
-    console.error("  5. Ensure the email address is valid");
-    console.error("  6. Check your internet connection");
     console.error("\nError details:", error);
     process.exit(1);
   }

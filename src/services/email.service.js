@@ -1,5 +1,5 @@
 const nodemailer = require("nodemailer");
-const sgMail = require("@sendgrid/mail");
+const axios = require("axios");
 const logger = require("../utils/logger");
 
 function resolveFromAddress() {
@@ -13,31 +13,49 @@ function resolveFromAddress() {
 }
 
 /**
- * Sends mail via SendGrid when SENDGRID_API_KEY is set; otherwise SMTP.
- * If neither SendGrid nor SMTP is configured, returns false (caller logs dev-only behaviour).
+ * Sends mail via Brevo when BREVO_API_KEY is set; otherwise SMTP.
+ * If neither Brevo nor SMTP is configured, returns false (caller logs dev-only behaviour).
+ */
+/**
+ * Sends mail via Brevo when BREVO_API_KEY is set; otherwise SMTP.
+ * If neither Brevo nor SMTP is configured, returns false (caller logs dev-only behaviour).
  */
 async function deliverMail(mailOptions, logLabel) {
-  const apiKey = process.env.SENDGRID_API_KEY?.trim();
+  const apiKey = process.env.BREVO_API_KEY?.trim();
   if (apiKey) {
-    sgMail.setApiKey(apiKey);
     try {
-      const [resp] = await sgMail.send({
+      // Use Brevo REST API directly
+      const response = await axios.post(
+        'https://api.brevo.com/v3/smtp/email',
+        {
+          sender: {
+            name: resolveFromAddress().fromName,
+            email: resolveFromAddress().fromEmail
+          },
+          to: [{ email: mailOptions.to }],
+          subject: mailOptions.subject,
+          htmlContent: mailOptions.html,
+          textContent: mailOptions.text
+        },
+        {
+          headers: {
+            'accept': 'application/json',
+            'api-key': apiKey,
+            'content-type': 'application/json'
+          }
+        }
+      );
+
+      logger.info(`${logLabel} sent via Brevo`, {
         to: mailOptions.to,
-        from: mailOptions.from,
-        subject: mailOptions.subject,
-        text: mailOptions.text,
-        html: mailOptions.html,
-      });
-      logger.info(`${logLabel} sent via SendGrid`, {
-        to: mailOptions.to,
-        statusCode: resp.statusCode,
+        messageId: response.data.messageId,
       });
       return true;
     } catch (error) {
-      const detail = error.response?.body
-        ? JSON.stringify(error.response.body)
+      const detail = error.response?.data
+        ? JSON.stringify(error.response.data)
         : error.message;
-      logger.error(`SendGrid failed (${logLabel})`, {
+      logger.error(`Brevo failed (${logLabel})`, {
         to: mailOptions.to,
         error: detail,
       });
@@ -207,7 +225,7 @@ async function sendOtpEmail(to, otpCode) {
   try {
     const sent = await deliverMail(mailOptions, "OTP email");
     if (!sent) {
-      logger.info("Email would be sent (no SendGrid key and SMTP not configured)", {
+      logger.info("Email would be sent (no Brevo key and SMTP not configured)", {
         to,
         subject: mailOptions.subject,
         otpCode,
@@ -332,7 +350,7 @@ async function sendAppointmentConfirmation(to, date, timeSlot) {
     const sent = await deliverMail(mailOptions, "Appointment confirmation email");
     if (!sent) {
       logger.info(
-        "Appointment confirmation would be sent (no SendGrid key and SMTP not configured)",
+        "Appointment confirmation would be sent (no Brevo key and SMTP not configured)",
         {
           to,
           date,
