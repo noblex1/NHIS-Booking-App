@@ -18,15 +18,19 @@ export function downloadAppointmentPdf(
     typeof appointment.centreId === "object" && appointment.centreId
       ? appointment.centreId
       : null;
+  const centreLabel = centre?.name || "Techiman Municipal NHIA Service Centre";
+  const addressLine = centre?.address
+    ? [centre.address, centre.city, centre.region].filter(Boolean).join(", ")
+    : "Techiman Municipal, Bono East Region";
 
   const lines: [string, string][] = [
     ["Reference number", appointment.referenceNumber || "—"],
-    ["Applicant", user.fullName],
+    ["Applicant name", user.fullName],
     ["Email", user.email],
     ["NHIS number", user.nhisNumber || "Assigned after centre visit"],
     ["Service", getServiceTypeLabel(appointment.serviceType)],
-    ["Centre", centre?.name || "Techiman Municipal NHIA Service Centre"],
-    ["Address", centre ? `${centre.address}, ${centre.city}` : "Techiman Municipal"],
+    ["Service centre", centreLabel],
+    ["Centre address", addressLine],
     ["Visit date", format(new Date(appointment.date), "EEEE, MMMM d, yyyy")],
     ["Time period", getSlotPeriodLabel(appointment.timeSlot)],
     [

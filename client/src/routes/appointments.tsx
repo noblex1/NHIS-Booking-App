@@ -2,7 +2,15 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { authStore, useAuthStore } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
-import { CalendarPlus, CalendarX, Calendar, Clock, Loader2, Download } from "lucide-react";
+import {
+  CalendarPlus,
+  CalendarX,
+  Calendar,
+  Clock,
+  Loader2,
+  Download,
+  FileText,
+} from "lucide-react";
 import type { Appointment } from "@/lib/api-client";
 import { downloadAppointmentPdf } from "@/lib/appointment-pdf";
 import { getSlotPeriodLabel } from "@/lib/slot-periods";
@@ -25,12 +33,20 @@ export const Route = createFileRoute("/appointments")({
   component: AppointmentsPage,
 });
 
+function centreName(apt: Appointment): string {
+  if (typeof apt.centreId === "object" && apt.centreId?.name) {
+    return apt.centreId.name;
+  }
+  return DEFAULT_CENTRE_NAME;
+}
+
 function AppointmentsPage() {
-  const { user, appointments } = useAuthStore();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
-  const [rawAppointments, setRawAppointments] = useState<Appointment[]>([]);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -38,11 +54,10 @@ function AppointmentsPage() {
       return;
     }
 
-    // Fetch appointments from backend
     const fetchAppointments = async () => {
       try {
         const response = await appointmentsApi.getMyAppointments();
-        setRawAppointments(response.appointments);
+        setAppointments(response.appointments);
         authStore.setAppointments(response.appointments);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -58,18 +73,34 @@ function AppointmentsPage() {
 
   if (!user) return null;
 
-  const cancel = async (id: string) => {
-    // Note: Backend doesn't have cancel endpoint yet, so we'll just update locally
-    // In a real app, you'd call an API endpoint here
-    setCancelling(id);
-    
+  const handleDownloadPdf = async (apt: Appointment) => {
+    setDownloadingId(apt._id);
     try {
-      // Simulate API call
+      downloadAppointmentPdf(apt, {
+        fullName: user.fullName,
+        email: user.email,
+        nhisNumber: user.nhisNumber,
+      });
+      toast.success("PDF downloaded");
+    } catch {
+      toast.error("Could not generate PDF. Please try again.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const cancel = async (id: string) => {
+    setCancelling(id);
+    try {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      
       authStore.cancelAppointment(id);
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a._id === id ? { ...a, status: "Cancelled" as const } : a,
+        ),
+      );
       toast.success("Appointment cancelled");
-    } catch (error) {
+    } catch {
       toast.error("Failed to cancel appointment");
     } finally {
       setCancelling(null);
@@ -84,7 +115,9 @@ function AppointmentsPage() {
     );
   }
 
-  const sorted = [...appointments].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sorted = [...appointments].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+  );
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 pb-24 md:pb-8 md:py-8 sm:px-6">
@@ -92,7 +125,9 @@ function AppointmentsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm font-medium text-primary">History</p>
-            <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">My centre bookings</h1>
+            <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">
+              My centre bookings
+            </h1>
             <p className="mt-2 text-sm text-muted-foreground sm:text-base">
               {DEFAULT_CENTRE_NAME}
             </p>
@@ -120,14 +155,12 @@ function AppointmentsPage() {
           </div>
         )}
 
-        {sorted.map((a) => {
-          const raw = rawAppointments.find((r) => r._id === a.id);
-          return (
+        {sorted.map((apt) => (
           <div
-            key={a.id}
+            key={apt._id}
             className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 sm:p-5"
           >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-start gap-3 sm:gap-4">
                 <div
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-primary-foreground sm:h-12 sm:w-12"
@@ -137,77 +170,104 @@ function AppointmentsPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold text-foreground sm:text-base">
-                    {getServiceTypeLabel(a.serviceType)}
+                    {getServiceTypeLabel(apt.serviceType)}
                   </div>
-                  {a.referenceNumber && (
-                    <p className="mt-0.5 font-mono text-xs text-primary">{a.referenceNumber}</p>
+                  {apt.referenceNumber && (
+                    <p className="mt-0.5 font-mono text-xs text-primary">
+                      {apt.referenceNumber}
+                    </p>
                   )}
-                  <p className="text-xs text-muted-foreground">
-                    {a.centreName || DEFAULT_CENTRE_NAME}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{centreName(apt)}</p>
                   <div className="text-sm text-muted-foreground">
-                    {format(new Date(a.date), "EEEE, MMMM d, yyyy")}
+                    {format(new Date(apt.date), "EEEE, MMMM d, yyyy")}
                   </div>
                   <div className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" />
-                    {getSlotPeriodLabel(a.time)}
+                    <Clock className="h-3.5 w-3.5 shrink-0" />
+                    {getSlotPeriodLabel(apt.timeSlot)}
                   </div>
-                  {a.applicationStatus && a.applicationStatus !== "cancelled" && (
+                  {apt.applicationStatus && apt.applicationStatus !== "cancelled" && (
                     <div className="mt-3">
                       <ApplicationStatusTimeline
-                        status={a.applicationStatus as ApplicationStatus}
+                        status={apt.applicationStatus as ApplicationStatus}
                       />
                     </div>
                   )}
-                  {typeof a.feeAmount === "number" && a.feeAmount > 0 && (
+                  {typeof apt.feeAmount === "number" && apt.feeAmount > 0 && (
                     <p className="mt-2 text-xs text-muted-foreground">
-                      Fee: GHS {a.feeAmount} {a.feePaid ? "(paid)" : "(unpaid)"}
+                      Fee: GHS {apt.feeAmount} {apt.feePaid ? "(paid)" : "(unpaid)"}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <StatusBadge status={a.status} />
-                {a.status === "Confirmed" && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => cancel(a.id)}
-                    disabled={cancelling === a.id}
-                  >
-                    {cancelling === a.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "Cancel"
-                    )}
-                  </Button>
-                )}
-              </div>
+              <StatusBadge status={apt.status} />
             </div>
+
+            <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center">
+              <Button
+                className="w-full sm:flex-1"
+                variant="default"
+                onClick={() => handleDownloadPdf(apt)}
+                disabled={downloadingId === apt._id}
+              >
+                {downloadingId === apt._id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                Download confirmation PDF
+              </Button>
+              {apt.status === "Confirmed" && (
+                <Button
+                  className="w-full sm:w-auto"
+                  variant="outline"
+                  onClick={() => cancel(apt._id)}
+                  disabled={cancelling === apt._id}
+                >
+                  {cancelling === apt._id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Cancel booking"
+                  )}
+                </Button>
+              )}
+            </div>
+
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <FileText className="h-3.5 w-3.5 shrink-0" />
+              PDF includes your name, centre, visit date, time period, reference number, and
+              booking status.
+            </p>
           </div>
-        );
-        })}
+        ))}
       </div>
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: "Confirmed" | "Pending" | "Cancelled" }) {
-  const styles: Record<typeof status, string> = {
+function StatusBadge({ status }: { status: string }) {
+  const normalized =
+    status === "Confirmed" || status === "confirmed"
+      ? "Confirmed"
+      : status === "Cancelled" || status === "cancelled"
+        ? "Cancelled"
+        : "Pending";
+
+  const styles: Record<string, string> = {
     Confirmed: "bg-secondary/10 text-secondary",
     Pending: "bg-amber-500/10 text-amber-600",
     Cancelled: "bg-destructive/10 text-destructive",
   };
+
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
-        styles[status],
+        "inline-flex shrink-0 items-center gap-1.5 self-start rounded-full px-2.5 py-1 text-xs font-medium sm:self-center",
+        styles[normalized],
       )}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
-      {status}
+      {normalized}
     </span>
   );
 }
