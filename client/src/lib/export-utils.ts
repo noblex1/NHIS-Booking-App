@@ -125,9 +125,7 @@ export function exportOfficialsToCSV(officials: any[]): void {
     "fullName",
     "email",
     "phone",
-    "employeeId",
-    "department",
-    "position",
+    "centre",
     "isActive",
     "createdAt",
   ];
@@ -136,9 +134,10 @@ export function exportOfficialsToCSV(officials: any[]): void {
     fullName: official.fullName,
     email: official.email,
     phone: official.phone,
-    employeeId: official.employeeId,
-    department: official.department,
-    position: official.position,
+    centre:
+      typeof official.assignedCentreId === "object"
+        ? official.assignedCentreId?.name
+        : "",
     isActive: official.isActive ? "Yes" : "No",
     createdAt: new Date(official.createdAt).toLocaleString(),
   }));
@@ -253,9 +252,7 @@ export function exportOfficialsToExcel(officials: any[]): void {
     "Full Name",
     "Email",
     "Phone",
-    "Employee ID",
-    "Department",
-    "Position",
+    "Centre",
     "Active",
     "Created At",
   ];
@@ -264,9 +261,10 @@ export function exportOfficialsToExcel(officials: any[]): void {
     "Full Name": official.fullName,
     Email: official.email,
     Phone: official.phone,
-    "Employee ID": official.employeeId,
-    Department: official.department,
-    Position: official.position,
+    Centre:
+      typeof official.assignedCentreId === "object"
+        ? official.assignedCentreId?.name
+        : "",
     Active: official.isActive ? "Yes" : "No",
     "Created At": new Date(official.createdAt).toLocaleString(),
   }));

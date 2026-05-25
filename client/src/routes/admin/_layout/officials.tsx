@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { adminOfficialsApi, AdminApiError, NhisOfficial } from "@/lib/admin-api-client";
 import { toast } from "sonner";
@@ -54,6 +54,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import { DEFAULT_CENTRE_NAME } from "@/lib/centre";
 
 export const Route = createFileRoute("/admin/_layout/officials")({
   head: () => ({
@@ -65,16 +66,14 @@ export const Route = createFileRoute("/admin/_layout/officials")({
   component: OfficialsManagementPage,
 });
 
-const officialSchema = z.object({
+const officialBaseSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 characters"),
-  employeeId: z.string().min(3, "Employee ID must be at least 3 characters"),
-  department: z.string().min(2, "Department is required"),
-  position: z.string().min(2, "Position is required"),
+  password: z.string().optional(),
 });
 
-type OfficialForm = z.infer<typeof officialSchema>;
+type OfficialForm = z.infer<typeof officialBaseSchema>;
 
 function OfficialsManagementPage() {
   const [officials, setOfficials] = useState<NhisOfficial[]>([]);
@@ -95,7 +94,7 @@ function OfficialsManagementPage() {
     reset,
     formState: { errors },
   } = useForm<OfficialForm>({
-    resolver: zodResolver(officialSchema),
+    resolver: zodResolver(officialBaseSchema),
   });
 
   const fetchOfficials = async () => {
@@ -134,9 +133,7 @@ function OfficialsManagementPage() {
         fullName: official.fullName,
         email: official.email,
         phone: official.phone,
-        employeeId: official.employeeId,
-        department: official.department,
-        position: official.position,
+        password: "",
       });
     } else {
       setEditingOfficial(null);
@@ -144,9 +141,7 @@ function OfficialsManagementPage() {
         fullName: "",
         email: "",
         phone: "",
-        employeeId: "",
-        department: "",
-        position: "",
+        password: "",
       });
     }
     setShowDialog(true);
@@ -159,14 +154,29 @@ function OfficialsManagementPage() {
   };
 
   const onSubmit = async (data: OfficialForm) => {
+    if (!editingOfficial && (!data.password || data.password.length < 6)) {
+      toast.error("Password must be at least 6 characters for new officials");
+      return;
+    }
+
     setSubmitting(true);
     try {
+      const payload = { ...data };
+      if (editingOfficial && !payload.password) {
+        delete payload.password;
+      }
+
       if (editingOfficial) {
-        await adminOfficialsApi.update(editingOfficial._id, data);
+        await adminOfficialsApi.update(editingOfficial._id, payload);
         toast.success("Official updated successfully");
       } else {
-        await adminOfficialsApi.create(data);
-        toast.success("Official created successfully");
+        await adminOfficialsApi.create({
+          ...payload,
+          password: payload.password!,
+        });
+        toast.success(
+          "Official created — they can sign in at /official/login with this email and password",
+        );
       }
       handleCloseDialog();
       fetchOfficials();
@@ -218,7 +228,11 @@ function OfficialsManagementPage() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">NHIS Officials Management</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage NHIS staff and officials
+            Create centre staff accounts for {DEFAULT_CENTRE_NAME}. Officials sign in at{" "}
+            <Link to="/official/login" className="text-primary hover:underline">
+              /official/login
+            </Link>
+            .
           </p>
         </div>
         <Button onClick={() => handleOpenDialog()}>
@@ -233,7 +247,7 @@ function OfficialsManagementPage() {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by name, email, or employee ID..."
+              placeholder="Search by name, email, or phone..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -275,9 +289,7 @@ function OfficialsManagementPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Employee ID</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Position</TableHead>
+                  <TableHead>Centre</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -292,9 +304,11 @@ function OfficialsManagementPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{official.email}</TableCell>
-                    <TableCell className="font-mono text-sm">{official.employeeId}</TableCell>
-                    <TableCell>{official.department}</TableCell>
-                    <TableCell>{official.position}</TableCell>
+                    <TableCell className="text-sm">
+                      {typeof official.assignedCentreId === "object"
+                        ? official.assignedCentreId?.name
+                        : DEFAULT_CENTRE_NAME}
+                    </TableCell>
                     <TableCell>
                       <button
                         onClick={() => handleToggleStatus(official)}
@@ -378,8 +392,8 @@ function OfficialsManagementPage() {
             </DialogTitle>
             <DialogDescription>
               {editingOfficial
-                ? "Update the official's information"
-                : "Add a new NHIS official to the system"}
+                ? "Update details or set a new password. Assigned to Techiman Municipal by default."
+                : "Creates a login for the official portal. They will process today's centre bookings only."}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -421,42 +435,23 @@ function OfficialsManagementPage() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="employeeId">Employee ID</Label>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="password">
+                  {editingOfficial ? "New password (optional)" : "Login password"}
+                </Label>
                 <Input
-                  id="employeeId"
-                  {...register("employeeId")}
+                  id="password"
+                  type="password"
+                  placeholder={editingOfficial ? "Leave blank to keep current" : "Min. 6 characters"}
+                  {...register("password")}
                   disabled={submitting}
                 />
-                {errors.employeeId && (
-                  <p className="text-sm text-destructive">{errors.employeeId.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="department">Department</Label>
-                <Input
-                  id="department"
-                  {...register("department")}
-                  disabled={submitting}
-                />
-                {errors.department && (
-                  <p className="text-sm text-destructive">{errors.department.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
-                <Input
-                  id="position"
-                  {...register("position")}
-                  disabled={submitting}
-                />
-                {errors.position && (
-                  <p className="text-sm text-destructive">{errors.position.message}</p>
-                )}
               </div>
             </div>
+
+            <p className="text-xs text-muted-foreground">
+              Centre: {DEFAULT_CENTRE_NAME} (auto-assigned)
+            </p>
 
             <DialogFooter>
               <Button

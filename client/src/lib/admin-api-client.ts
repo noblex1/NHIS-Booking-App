@@ -367,10 +367,15 @@ export interface NhisOfficial {
   fullName: string;
   email: string;
   phone: string;
-  employeeId: string;
-  department: string;
-  position: string;
+  assignedCentreId?: {
+    _id: string;
+    name: string;
+    code?: string;
+    city?: string;
+    region?: string;
+  };
   isActive: boolean;
+  lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -390,19 +395,17 @@ export interface CreateOfficialRequest {
   fullName: string;
   email: string;
   phone: string;
-  employeeId: string;
-  department: string;
-  position: string;
+  password: string;
+  assignedCentreId?: string;
 }
 
 export interface UpdateOfficialRequest {
   fullName?: string;
   email?: string;
   phone?: string;
-  employeeId?: string;
-  department?: string;
-  position?: string;
   isActive?: boolean;
+  password?: string;
+  assignedCentreId?: string;
 }
 
 export interface OfficialStatsResponse {
@@ -411,7 +414,6 @@ export interface OfficialStatsResponse {
     total: number;
     active: number;
     inactive: number;
-    byDepartment: Array<{ _id: string; count: number }>;
   };
 }
 

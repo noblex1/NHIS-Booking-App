@@ -69,6 +69,16 @@ const appointmentSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    checkedInAt: {
+      type: Date,
+    },
+    completedAt: {
+      type: Date,
+    },
+    processedByOfficialId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "NhisOfficial",
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } },
 );

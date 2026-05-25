@@ -7,6 +7,7 @@ const authRoutes = require("./routes/auth.routes");
 const appointmentRoutes = require("./routes/appointment.routes");
 const centresRoutes = require("./routes/centres.routes");
 const adminRoutes = require("./routes/admin.routes");
+const officialRoutes = require("./routes/official.routes");
 const errorHandler = require("./middlewares/error.middleware");
 const notFoundHandler = require("./middlewares/notFound.middleware");
 
@@ -33,6 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/centres", centresRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/official", officialRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

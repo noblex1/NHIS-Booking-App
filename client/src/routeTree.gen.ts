@@ -17,8 +17,13 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BookRouteImport } from './routes/book'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OfficialLoginRouteImport } from './routes/official/login'
+import { Route as OfficialLayoutRouteImport } from './routes/official/_layout'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminLayoutRouteImport } from './routes/admin/_layout'
+import { Route as OfficialLayoutIndexRouteImport } from './routes/official/_layout/index'
+import { Route as OfficialLayoutQueueRouteImport } from './routes/official/_layout/queue'
+import { Route as OfficialLayoutDashboardRouteImport } from './routes/official/_layout/dashboard'
 import { Route as AdminLayoutUsersRouteImport } from './routes/admin/_layout/users'
 import { Route as AdminLayoutOfficialsRouteImport } from './routes/admin/_layout/officials'
 import { Route as AdminLayoutDashboardRouteImport } from './routes/admin/_layout/dashboard'
@@ -67,6 +72,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OfficialLoginRoute = OfficialLoginRouteImport.update({
+  id: '/official/login',
+  path: '/official/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfficialLayoutRoute = OfficialLayoutRouteImport.update({
+  id: '/official/_layout',
+  path: '/official',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin/login',
   path: '/admin/login',
@@ -76,6 +91,21 @@ const AdminLayoutRoute = AdminLayoutRouteImport.update({
   id: '/admin/_layout',
   path: '/admin',
   getParentRoute: () => rootRouteImport,
+} as any)
+const OfficialLayoutIndexRoute = OfficialLayoutIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OfficialLayoutRoute,
+} as any)
+const OfficialLayoutQueueRoute = OfficialLayoutQueueRouteImport.update({
+  id: '/queue',
+  path: '/queue',
+  getParentRoute: () => OfficialLayoutRoute,
+} as any)
+const OfficialLayoutDashboardRoute = OfficialLayoutDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => OfficialLayoutRoute,
 } as any)
 const AdminLayoutUsersRoute = AdminLayoutUsersRouteImport.update({
   id: '/users',
@@ -124,12 +154,17 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRoute
   '/admin': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
+  '/official': typeof OfficialLayoutRouteWithChildren
+  '/official/login': typeof OfficialLoginRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/centres': typeof AdminLayoutCentresRoute
   '/admin/dashboard': typeof AdminLayoutDashboardRoute
   '/admin/officials': typeof AdminLayoutOfficialsRoute
   '/admin/users': typeof AdminLayoutUsersRouteWithChildren
+  '/official/dashboard': typeof OfficialLayoutDashboardRoute
+  '/official/queue': typeof OfficialLayoutQueueRoute
+  '/official/': typeof OfficialLayoutIndexRoute
   '/admin/users/$userId': typeof AdminLayoutUsersUserIdRoute
 }
 export interface FileRoutesByTo {
@@ -143,12 +178,16 @@ export interface FileRoutesByTo {
   '/verify': typeof VerifyRoute
   '/admin': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
+  '/official/login': typeof OfficialLoginRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/centres': typeof AdminLayoutCentresRoute
   '/admin/dashboard': typeof AdminLayoutDashboardRoute
   '/admin/officials': typeof AdminLayoutOfficialsRoute
   '/admin/users': typeof AdminLayoutUsersRouteWithChildren
+  '/official/dashboard': typeof OfficialLayoutDashboardRoute
+  '/official/queue': typeof OfficialLayoutQueueRoute
+  '/official': typeof OfficialLayoutIndexRoute
   '/admin/users/$userId': typeof AdminLayoutUsersUserIdRoute
 }
 export interface FileRoutesById {
@@ -163,12 +202,17 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRoute
   '/admin/_layout': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
+  '/official/_layout': typeof OfficialLayoutRouteWithChildren
+  '/official/login': typeof OfficialLoginRoute
   '/admin/_layout/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/_layout/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/_layout/centres': typeof AdminLayoutCentresRoute
   '/admin/_layout/dashboard': typeof AdminLayoutDashboardRoute
   '/admin/_layout/officials': typeof AdminLayoutOfficialsRoute
   '/admin/_layout/users': typeof AdminLayoutUsersRouteWithChildren
+  '/official/_layout/dashboard': typeof OfficialLayoutDashboardRoute
+  '/official/_layout/queue': typeof OfficialLayoutQueueRoute
+  '/official/_layout/': typeof OfficialLayoutIndexRoute
   '/admin/_layout/users/$userId': typeof AdminLayoutUsersUserIdRoute
 }
 export interface FileRouteTypes {
@@ -184,12 +228,17 @@ export interface FileRouteTypes {
     | '/verify'
     | '/admin'
     | '/admin/login'
+    | '/official'
+    | '/official/login'
     | '/admin/appointments'
     | '/admin/availability'
     | '/admin/centres'
     | '/admin/dashboard'
     | '/admin/officials'
     | '/admin/users'
+    | '/official/dashboard'
+    | '/official/queue'
+    | '/official/'
     | '/admin/users/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -203,12 +252,16 @@ export interface FileRouteTypes {
     | '/verify'
     | '/admin'
     | '/admin/login'
+    | '/official/login'
     | '/admin/appointments'
     | '/admin/availability'
     | '/admin/centres'
     | '/admin/dashboard'
     | '/admin/officials'
     | '/admin/users'
+    | '/official/dashboard'
+    | '/official/queue'
+    | '/official'
     | '/admin/users/$userId'
   id:
     | '__root__'
@@ -222,12 +275,17 @@ export interface FileRouteTypes {
     | '/verify'
     | '/admin/_layout'
     | '/admin/login'
+    | '/official/_layout'
+    | '/official/login'
     | '/admin/_layout/appointments'
     | '/admin/_layout/availability'
     | '/admin/_layout/centres'
     | '/admin/_layout/dashboard'
     | '/admin/_layout/officials'
     | '/admin/_layout/users'
+    | '/official/_layout/dashboard'
+    | '/official/_layout/queue'
+    | '/official/_layout/'
     | '/admin/_layout/users/$userId'
   fileRoutesById: FileRoutesById
 }
@@ -242,6 +300,8 @@ export interface RootRouteChildren {
   VerifyRoute: typeof VerifyRoute
   AdminLayoutRoute: typeof AdminLayoutRouteWithChildren
   AdminLoginRoute: typeof AdminLoginRoute
+  OfficialLayoutRoute: typeof OfficialLayoutRouteWithChildren
+  OfficialLoginRoute: typeof OfficialLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -302,6 +362,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/official/login': {
+      id: '/official/login'
+      path: '/official/login'
+      fullPath: '/official/login'
+      preLoaderRoute: typeof OfficialLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/official/_layout': {
+      id: '/official/_layout'
+      path: '/official'
+      fullPath: '/official'
+      preLoaderRoute: typeof OfficialLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/admin/login'
@@ -315,6 +389,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin'
       preLoaderRoute: typeof AdminLayoutRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/official/_layout/': {
+      id: '/official/_layout/'
+      path: '/'
+      fullPath: '/official/'
+      preLoaderRoute: typeof OfficialLayoutIndexRouteImport
+      parentRoute: typeof OfficialLayoutRoute
+    }
+    '/official/_layout/queue': {
+      id: '/official/_layout/queue'
+      path: '/queue'
+      fullPath: '/official/queue'
+      preLoaderRoute: typeof OfficialLayoutQueueRouteImport
+      parentRoute: typeof OfficialLayoutRoute
+    }
+    '/official/_layout/dashboard': {
+      id: '/official/_layout/dashboard'
+      path: '/dashboard'
+      fullPath: '/official/dashboard'
+      preLoaderRoute: typeof OfficialLayoutDashboardRouteImport
+      parentRoute: typeof OfficialLayoutRoute
     }
     '/admin/_layout/users': {
       id: '/admin/_layout/users'
@@ -401,6 +496,22 @@ const AdminLayoutRouteWithChildren = AdminLayoutRoute._addFileChildren(
   AdminLayoutRouteChildren,
 )
 
+interface OfficialLayoutRouteChildren {
+  OfficialLayoutDashboardRoute: typeof OfficialLayoutDashboardRoute
+  OfficialLayoutQueueRoute: typeof OfficialLayoutQueueRoute
+  OfficialLayoutIndexRoute: typeof OfficialLayoutIndexRoute
+}
+
+const OfficialLayoutRouteChildren: OfficialLayoutRouteChildren = {
+  OfficialLayoutDashboardRoute: OfficialLayoutDashboardRoute,
+  OfficialLayoutQueueRoute: OfficialLayoutQueueRoute,
+  OfficialLayoutIndexRoute: OfficialLayoutIndexRoute,
+}
+
+const OfficialLayoutRouteWithChildren = OfficialLayoutRoute._addFileChildren(
+  OfficialLayoutRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppointmentsRoute: AppointmentsRoute,
@@ -412,6 +523,8 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyRoute: VerifyRoute,
   AdminLayoutRoute: AdminLayoutRouteWithChildren,
   AdminLoginRoute: AdminLoginRoute,
+  OfficialLayoutRoute: OfficialLayoutRouteWithChildren,
+  OfficialLoginRoute: OfficialLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
