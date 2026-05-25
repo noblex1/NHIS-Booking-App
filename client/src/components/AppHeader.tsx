@@ -41,7 +41,7 @@ export function AppHeader() {
           <div className="hidden leading-tight sm:block">
             <div className="text-sm font-bold text-foreground">NHIS</div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Booking System
+              Registration & Renewal
             </div>
           </div>
         </Link>
@@ -62,14 +62,14 @@ export function AppHeader() {
                 className="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 activeProps={{ className: "text-foreground bg-accent" }}
               >
-                Book
+                Book visit
               </Link>
               <Link
                 to="/appointments"
                 className="inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 activeProps={{ className: "text-foreground bg-accent" }}
               >
-                Appointments
+                My bookings
               </Link>
               <Link
                 to="/profile"

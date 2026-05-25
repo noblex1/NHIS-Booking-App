@@ -7,12 +7,13 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { appointmentsApi, ApiError } from "@/lib/api-client";
+import { getServiceTypeLabel } from "@/lib/nhis-services";
 
 export const Route = createFileRoute("/appointments")({
   head: () => ({
     meta: [
-      { title: "My Appointments - NHIS Booking" },
-      { name: "description", content: "View and manage your NHIS appointments." },
+      { title: "My bookings - NHIS" },
+      { name: "description", content: "Your NHIS registration and renewal centre visits." },
     ],
   }),
   component: AppointmentsPage,
@@ -83,8 +84,10 @@ function AppointmentsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm font-medium text-primary">History</p>
-            <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">My Appointments</h1>
-            <p className="mt-2 text-sm text-muted-foreground sm:text-base">Your upcoming and past visits.</p>
+            <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">My centre bookings</h1>
+            <p className="mt-2 text-sm text-muted-foreground sm:text-base">
+              Registration and renewal visits at NHIA service centres.
+            </p>
           </div>
           <Link to="/book" className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto">
@@ -99,10 +102,12 @@ function AppointmentsPage() {
         {sorted.length === 0 && (
           <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center sm:p-10">
             <CalendarX className="mx-auto h-10 w-10 text-muted-foreground/60" />
-            <h3 className="mt-3 text-base font-semibold text-foreground">No appointments yet</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Book your first appointment to get started.</p>
+            <h3 className="mt-3 text-base font-semibold text-foreground">No bookings yet</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Book your first registration or renewal centre visit.
+            </p>
             <Link to="/book" className="mt-4 inline-block">
-              <Button>Book appointment</Button>
+              <Button>Book centre visit</Button>
             </Link>
           </div>
         )}
@@ -122,6 +127,9 @@ function AppointmentsPage() {
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-foreground sm:text-base">
+                    {getServiceTypeLabel(a.serviceType)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
                     {format(new Date(a.date), "EEEE, MMMM d, yyyy")}
                   </div>
                   <div className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">

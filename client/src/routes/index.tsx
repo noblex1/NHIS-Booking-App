@@ -1,17 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShieldCheck, Clock, HeartPulse, ArrowRight } from "lucide-react";
+import { Calendar, ShieldCheck, Clock, FilePlus2, RefreshCw, ArrowRight } from "lucide-react";
 import { useAuthStore } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NHIS Appointment Booking - Book Securely" },
+      { title: "NHIS Registration & Renewal - Book your centre visit" },
       {
         name: "description",
         content:
-          "Book your NHIS appointment quickly and securely. Manage your health visits in one place.",
+          "Book NHIS registration or renewal at an NHIA service centre. Secure online account, OTP verification, and appointment scheduling.",
       },
     ],
   }),
@@ -22,12 +22,12 @@ function LandingPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
-  // Redirect authenticated users to dashboard
   useEffect(() => {
     if (user) {
       navigate({ to: "/dashboard" });
     }
   }, [user, navigate]);
+
   return (
     <div className="relative overflow-hidden">
       <div
@@ -50,15 +50,19 @@ function LandingPage() {
             </span>
 
             <h1 className="mt-5 text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              NHIS Appointment{" "}
-              <span className="bg-clip-text text-transparent" style={{ backgroundImage: "var(--gradient-hero)" }}>
-                Booking System
+              NHIS{" "}
+              <span
+                className="bg-clip-text text-transparent"
+                style={{ backgroundImage: "var(--gradient-hero)" }}
+              >
+                registration & renewal
               </span>
             </h1>
 
             <p className="mt-4 text-base text-muted-foreground sm:mt-5 sm:text-xl">
-              Book your appointment quickly and securely - manage your visits, prescriptions, and
-              history in one trusted place.
+              Book your visit to an NHIA service centre online — the same idea as passport
+              application booking: create an account, choose new registration or renewal, and
+              reserve your time slot.
             </p>
 
             <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
@@ -70,7 +74,7 @@ function LandingPage() {
               </Link>
               <Link to="/register" className="w-full sm:w-auto">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto">
-                  Register
+                  Create account
                 </Button>
               </Link>
             </div>
@@ -78,8 +82,8 @@ function LandingPage() {
             <div className="mx-auto mt-8 grid max-w-md grid-cols-3 gap-3 lg:mx-0">
               {[
                 { icon: ShieldCheck, label: "Secure" },
-                { icon: Clock, label: "24/7" },
-                { icon: HeartPulse, label: "Trusted" },
+                { icon: Clock, label: "24/7 booking" },
+                { icon: Calendar, label: "Centre slots" },
               ].map(({ icon: Icon, label }) => (
                 <div
                   key={label}
@@ -107,15 +111,15 @@ function LandingPage() {
                     className="flex h-12 w-12 items-center justify-center rounded-2xl text-primary-foreground"
                     style={{ background: "var(--gradient-hero)" }}
                   >
-                    <Calendar className="h-6 w-6" />
+                    <RefreshCw className="h-6 w-6" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-foreground">Next Appointment</div>
-                    <div className="text-xs text-muted-foreground">General Consultation</div>
+                    <div className="text-sm font-semibold text-foreground">NHIS renewal</div>
+                    <div className="text-xs text-muted-foreground">NHIA service centre</div>
                   </div>
                 </div>
                 <span className="w-fit rounded-full bg-secondary/10 px-2.5 py-1 text-xs font-medium text-secondary">
-                  Confirmed
+                  Slot reserved
                 </span>
               </div>
 
@@ -131,15 +135,19 @@ function LandingPage() {
               </div>
 
               <div className="mt-6 space-y-2">
-                {["Morning", "Afternoon", "Evening"].map((slot, i) => (
+                {[
+                  { icon: FilePlus2, label: "New registration", hint: "First-time members" },
+                  { icon: RefreshCw, label: "Renewal", hint: "Existing NHIS card" },
+                ].map(({ icon: Icon, label, hint }) => (
                   <div
-                    key={slot}
+                    key={label}
                     className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-2.5"
                   >
-                    <span className="text-sm font-medium text-foreground">{slot} slot</span>
-                    <span className="text-xs text-muted-foreground">
-                      {i === 0 ? "3 left" : i === 1 ? "5 left" : "Full"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Icon className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium text-foreground">{label}</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{hint}</span>
                   </div>
                 ))}
               </div>

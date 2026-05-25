@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { adminDashboardApi, AdminApiError, DashboardStats } from "@/lib/admin-api-client";
 import { toast } from "sonner";
 import {
@@ -10,9 +10,13 @@ import {
   TrendingUp,
   Clock,
   Loader2,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Line, LineChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/_layout/dashboard")({
   head: () => ({
@@ -23,6 +27,13 @@ export const Route = createFileRoute("/admin/_layout/dashboard")({
   }),
   component: AdminDashboardPage,
 });
+
+const growthChartConfig = {
+  signups: {
+    label: "New users",
+    color: "hsl(var(--primary))",
+  },
+};
 
 function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -45,6 +56,15 @@ function AdminDashboardPage() {
     fetchStats();
   }, []);
 
+  const growthData = useMemo(() => {
+    if (!stats?.growth?.users) return [];
+    return stats.growth.users.map((item) => ({
+      date: item._id,
+      label: format(parseISO(item._id), "MMM d"),
+      signups: item.count,
+    }));
+  }, [stats]);
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -63,15 +83,13 @@ function AdminDashboardPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Overview of your NHIS booking system
+          NHIS registration, renewal, and centre booking overview
         </p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Users"
@@ -79,6 +97,7 @@ function AdminDashboardPage() {
           subtitle={`${stats.users.verified} verified`}
           icon={Users}
           trend={`+${stats.users.newThisMonth} this month`}
+          href="/admin/users"
         />
         <StatCard
           title="Total Appointments"
@@ -86,6 +105,7 @@ function AdminDashboardPage() {
           subtitle={`${stats.appointments.confirmed} confirmed`}
           icon={Calendar}
           trend={`${stats.appointments.today} today`}
+          href="/admin/appointments"
         />
         <StatCard
           title="Upcoming"
@@ -93,6 +113,7 @@ function AdminDashboardPage() {
           subtitle="Active bookings"
           icon={Clock}
           variant="secondary"
+          href="/admin/appointments"
         />
         <StatCard
           title="NHIS Officials"
@@ -100,25 +121,60 @@ function AdminDashboardPage() {
           subtitle={`${stats.officials.active} active`}
           icon={UserCog}
           variant="accent"
+          href="/admin/officials"
         />
       </div>
 
-      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">User signups (last 7 days)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {growthData.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No signups in the last 7 days</p>
+          ) : (
+            <ChartContainer config={growthChartConfig} className="h-[240px] w-full">
+              <LineChart data={growthData} margin={{ left: 8, right: 8, top: 8, bottom: 0 }}>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} width={32} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line
+                  type="monotone"
+                  dataKey="signups"
+                  stroke="var(--color-signups)"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
+              </LineChart>
+            </ChartContainer>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Users */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Recent Users</CardTitle>
+            <Link
+              to="/admin/users"
+              className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
+            >
+              View all
+              <ChevronRight className="h-3 w-3" />
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {stats.recent.users.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No recent users</p>
               ) : (
-                stats.recent.users.map((user: any) => (
-                  <div
+                stats.recent.users.map((user: { _id: string; fullName: string; email: string; createdAt: string; isVerified: boolean }) => (
+                  <Link
                     key={user._id}
-                    className="flex items-center justify-between rounded-lg border border-border p-3"
+                    to="/admin/users/$userId"
+                    params={{ userId: user._id }}
+                    className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-accent/50"
                   >
                     <div>
                       <p className="font-medium text-foreground">{user.fullName}</p>
@@ -137,27 +193,40 @@ function AdminDashboardPage() {
                         <span className="text-xs text-amber-600">Pending</span>
                       )}
                     </div>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Recent Appointments */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Recent Appointments</CardTitle>
+            <Link
+              to="/admin/appointments"
+              className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
+            >
+              View all
+              <ChevronRight className="h-3 w-3" />
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {stats.recent.appointments.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No recent appointments</p>
               ) : (
-                stats.recent.appointments.map((apt: any) => (
-                  <div
+                stats.recent.appointments.map((apt: {
+                  _id: string;
+                  date: string;
+                  timeSlot: string;
+                  status: string;
+                  userId?: { fullName?: string; email?: string };
+                }) => (
+                  <Link
                     key={apt._id}
-                    className="flex items-center justify-between rounded-lg border border-border p-3"
+                    to="/admin/appointments"
+                    className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-accent/50"
                   >
                     <div>
                       <p className="font-medium text-foreground">
@@ -168,7 +237,7 @@ function AdminDashboardPage() {
                       </p>
                     </div>
                     <StatusBadge status={apt.status} />
-                  </div>
+                  </Link>
                 ))
               )}
             </div>
@@ -176,21 +245,21 @@ function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* Appointment Status Breakdown */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Appointment Status</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-3">
-            {stats.appointments.byStatus.map((item: any) => (
-              <div
+            {stats.appointments.byStatus.map((item: { _id: string; count: number }) => (
+              <Link
                 key={item._id}
-                className="rounded-lg border border-border bg-accent/50 p-4 text-center"
+                to="/admin/appointments"
+                className="rounded-lg border border-border bg-accent/50 p-4 text-center transition-colors hover:bg-accent"
               >
                 <p className="text-2xl font-bold text-foreground">{item.count}</p>
                 <p className="text-sm text-muted-foreground">{item._id}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </CardContent>
@@ -206,6 +275,7 @@ function StatCard({
   icon: Icon,
   trend,
   variant = "primary",
+  href,
 }: {
   title: string;
   value: number;
@@ -213,6 +283,7 @@ function StatCard({
   icon: React.ComponentType<{ className?: string }>;
   trend?: string;
   variant?: "primary" | "secondary" | "accent";
+  href?: string;
 }) {
   const colors = {
     primary: "bg-primary/10 text-primary",
@@ -220,8 +291,8 @@ function StatCard({
     accent: "bg-accent text-foreground",
   };
 
-  return (
-    <Card>
+  const content = (
+    <Card className={cn(href && "transition-shadow hover:shadow-md")}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -235,13 +306,21 @@ function StatCard({
               </p>
             )}
           </div>
-          <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${colors[variant]}`}>
+          <div
+            className={`flex h-12 w-12 items-center justify-center rounded-xl ${colors[variant]}`}
+          >
             <Icon className="h-6 w-6" />
           </div>
         </div>
       </CardContent>
     </Card>
   );
+
+  if (href) {
+    return <Link to={href}>{content}</Link>;
+  }
+
+  return content;
 }
 
 function StatusBadge({ status }: { status: string }) {

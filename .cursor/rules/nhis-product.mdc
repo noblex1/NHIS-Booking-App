@@ -1,0 +1,34 @@
+---
+description: NHIS portal product model — registration & renewal (passport-style booking)
+alwaysApply: true
+---
+
+# NHIS portal product context
+
+This app is **not** a general clinic or hospital appointment system.
+
+It mirrors government service portals such as [Ghana Passport Application](https://passport.mfa.gov.gh/): citizens **book a slot at an NHIA service centre** to complete **NHIS membership services**.
+
+## Core user journeys
+
+1. **New NHIS registration** — first-time enrollment; user receives NHIS number after verification.
+2. **NHIS renewal** — existing members renew coverage at a centre.
+3. **Book a centre visit** — pick service type (new vs renewal), date, and time slot (subject to admin availability rules).
+4. **Track bookings** — view upcoming centre appointments and status.
+
+## Terminology (prefer in UI and docs)
+
+| Use | Avoid |
+|-----|--------|
+| NHIS registration / renewal | General consultation, health visit |
+| Service centre appointment | Doctor visit, clinic booking |
+| Book a centre slot | Book appointment (alone, without context) |
+| Application / service type | Reason for visit (medical) |
+
+## Technical notes
+
+- Appointment records include `serviceType`: `new_registration` | `renewal`.
+- Admin **Availability** controls which calendar dates are open or closed for bookings.
+- OTP + account registration are the digital front door; the in-person step happens at the booked slot.
+
+When adding features, ask: “Does this match passport-style **service booking + application tracking**, not hospital scheduling?”

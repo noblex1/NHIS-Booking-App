@@ -8,8 +8,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard - NHIS Booking" },
-      { name: "description", content: "Your NHIS dashboard." },
+      { title: "Dashboard - NHIS" },
+      { name: "description", content: "Your NHIS registration and renewal bookings." },
     ],
   }),
   component: DashboardPage,
@@ -72,22 +72,22 @@ function DashboardPage() {
 
       <div className="mt-6 grid gap-3 sm:mt-8 sm:grid-cols-3 sm:gap-4">
         <StatCard icon={ListChecks} label="Upcoming" value={String(upcoming)} />
-        <StatCard icon={Clock} label="Total visits" value={String(appointments.length)} />
+        <StatCard icon={Clock} label="Centre visits" value={String(appointments.length)} />
         <StatCard icon={ShieldCheck} label="Coverage" value="Active" tone="secondary" />
       </div>
 
       <div className="mt-6 grid gap-4 sm:mt-8 md:grid-cols-2 md:gap-5">
         <ActionCard
           to="/book"
-          title="Book Appointment"
-          description="Pick a date and time slot that works for you."
+          title="Book centre visit"
+          description="Schedule NHIS registration or renewal at an NHIA centre."
           icon={CalendarPlus}
           gradient
         />
         <ActionCard
           to="/appointments"
-          title="My Appointments"
-          description="View, manage, or cancel your upcoming visits."
+          title="My bookings"
+          description="View your upcoming registration and renewal slots."
           icon={ListChecks}
         />
       </div>

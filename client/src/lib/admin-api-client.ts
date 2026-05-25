@@ -247,6 +247,13 @@ export const adminUsersApi = {
     });
   },
 
+  async bulkDelete(ids: string[]): Promise<{ success: boolean; message: string; deletedCount: number }> {
+    return fetchAdminApi("/api/admin/users/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    });
+  },
+
   async getStats(): Promise<UserStatsResponse> {
     return fetchAdminApi<UserStatsResponse>("/api/admin/users/stats");
   },
@@ -261,6 +268,7 @@ export interface Appointment {
   userId: any;
   date: string;
   timeSlot: string;
+  serviceType?: "new_registration" | "renewal";
   status: "Confirmed" | "Pending" | "Cancelled";
   createdAt: string;
   updatedAt: string;
@@ -431,6 +439,47 @@ export const adminOfficialsApi = {
   },
 };
 
+// ============================================================================
+// Booking schedule (availability) API
+// ============================================================================
+
+export interface BookingScheduleRule {
+  date: string;
+  type: "blocked" | "open";
+  reason: string;
+}
+
+export interface BookingScheduleResponse {
+  success: boolean;
+  rules: BookingScheduleRule[];
+  blockedDates: string[];
+  openDates: string[];
+}
+
+export const adminScheduleApi = {
+  async getRange(from: string, to: string): Promise<BookingScheduleResponse> {
+    const query = new URLSearchParams({ from, to });
+    return fetchAdminApi<BookingScheduleResponse>(`/api/admin/schedule?${query}`);
+  },
+
+  async setRule(data: {
+    date: string;
+    type: "blocked" | "open";
+    reason?: string;
+  }): Promise<{ success: boolean; message: string; rule: BookingScheduleRule }> {
+    return fetchAdminApi("/api/admin/schedule", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async removeRule(date: string): Promise<{ success: boolean; message: string; date: string }> {
+    return fetchAdminApi(`/api/admin/schedule/${date}`, {
+      method: "DELETE",
+    });
+  },
+};
+
 // Export everything
 export const adminApi = {
   auth: adminAuthApi,
@@ -438,6 +487,7 @@ export const adminApi = {
   users: adminUsersApi,
   appointments: adminAppointmentsApi,
   officials: adminOfficialsApi,
+  schedule: adminScheduleApi,
 };
 
 export default adminApi;

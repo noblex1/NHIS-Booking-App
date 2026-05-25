@@ -4,15 +4,18 @@ const {
   getMyAppointments,
   getAvailableSlots,
 } = require("../controllers/appointment.controller");
+const { getPublicSchedule } = require("../controllers/bookingSchedule.controller");
 const { requireAuth } = require("../middlewares/auth.middleware");
 const validate = require("../middlewares/validate.middleware");
 const {
   createAppointmentValidator,
   availableSlotsValidator,
+  scheduleRangeValidator,
 } = require("../utils/validators");
 
 const router = express.Router();
 
+router.get("/schedule", scheduleRangeValidator, validate, getPublicSchedule);
 router.get("/available", availableSlotsValidator, validate, getAvailableSlots);
 router.post("/", requireAuth, createAppointmentValidator, validate, createAppointment);
 router.get("/", requireAuth, getMyAppointments);

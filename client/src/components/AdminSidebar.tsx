@@ -7,6 +7,7 @@ import {
   UserCog,
   LogOut,
   Shield,
+  CalendarDays,
 } from "lucide-react";
 import { adminStore, useAdminStore } from "@/lib/admin-store";
 import { useNavigate } from "@tanstack/react-router";
@@ -15,7 +16,8 @@ import { toast } from "sonner";
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Appointments", href: "/admin/appointments", icon: Calendar },
+  { name: "Centre bookings", href: "/admin/appointments", icon: Calendar },
+  { name: "Availability", href: "/admin/availability", icon: CalendarDays },
   { name: "NHIS Officials", href: "/admin/officials", icon: UserCog },
 ];
 
@@ -39,7 +41,7 @@ export function AdminSidebar() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-foreground">NHIS Admin</h1>
-          <p className="text-xs text-muted-foreground">Management Portal</p>
+          <p className="text-xs text-muted-foreground">Registration & renewal</p>
         </div>
       </div>
 

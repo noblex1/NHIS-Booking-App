@@ -6,9 +6,15 @@ const {
   getAllUsers,
   getUserById,
   updateUser,
+  bulkDeleteUsers,
   deleteUser,
   getUserStats,
 } = require("../controllers/admin.users.controller");
+const {
+  getSchedule,
+  setScheduleRule,
+  deleteScheduleRule,
+} = require("../controllers/admin.schedule.controller");
 const {
   getAllAppointments,
   getAppointmentById,
@@ -73,6 +79,17 @@ router.get(
 );
 
 router.get("/users/stats", adminAuth, getUserStats);
+
+router.post(
+  "/users/bulk-delete",
+  adminAuth,
+  [
+    body("ids").isArray({ min: 1 }).withMessage("ids must be a non-empty array"),
+    body("ids.*").isMongoId().withMessage("Each id must be valid"),
+    validate,
+  ],
+  bulkDeleteUsers,
+);
 
 router.get(
   "/users/:id",
@@ -145,6 +162,40 @@ router.delete(
   adminAuth,
   [param("id").isMongoId().withMessage("Invalid appointment ID"), validate],
   deleteAppointment,
+);
+
+// ============================================================================
+// Booking schedule (availability) routes
+// ============================================================================
+
+router.get(
+  "/schedule",
+  adminAuth,
+  [
+    query("from").notEmpty().withMessage("from is required"),
+    query("to").notEmpty().withMessage("to is required"),
+    validate,
+  ],
+  getSchedule,
+);
+
+router.put(
+  "/schedule",
+  adminAuth,
+  [
+    body("date").isISO8601().withMessage("Valid date is required"),
+    body("type").isIn(["blocked", "open"]).withMessage("type must be blocked or open"),
+    body("reason").optional().isString(),
+    validate,
+  ],
+  setScheduleRule,
+);
+
+router.delete(
+  "/schedule/:date",
+  adminAuth,
+  [param("date").matches(/^\d{4}-\d{2}-\d{2}$/).withMessage("date must be YYYY-MM-DD"), validate],
+  deleteScheduleRule,
 );
 
 // ============================================================================

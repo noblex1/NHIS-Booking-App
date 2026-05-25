@@ -22,7 +22,17 @@ const APPOINTMENT_STATUS = {
   CANCELLED: "Cancelled",
 };
 
+/** In-person NHIA centre services (passport-style application types) */
+const NHIS_SERVICE_TYPES = {
+  NEW_REGISTRATION: "new_registration",
+  RENEWAL: "renewal",
+};
+
+const NHIS_SERVICE_TYPE_VALUES = Object.values(NHIS_SERVICE_TYPES);
+
 module.exports = {
   DEFAULT_TIME_SLOTS,
   APPOINTMENT_STATUS,
+  NHIS_SERVICE_TYPES,
+  NHIS_SERVICE_TYPE_VALUES,
 };

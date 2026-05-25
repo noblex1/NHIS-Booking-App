@@ -243,14 +243,20 @@ async function sendOtpEmail(to, otpCode) {
  * @param {string} date - Appointment date
  * @param {string} timeSlot - Appointment time slot
  */
-async function sendAppointmentConfirmation(to, date, timeSlot) {
+const SERVICE_TYPE_LABELS = {
+  new_registration: "New NHIS registration",
+  renewal: "NHIS renewal",
+};
+
+async function sendAppointmentConfirmation(to, date, timeSlot, serviceType = "renewal") {
   const { fromHeader } = resolveFromAddress();
+  const serviceLabel = SERVICE_TYPE_LABELS[serviceType] || "NHIS service";
 
   const mailOptions = {
     from: fromHeader,
     to,
-    subject: "NHIS Appointment Confirmation",
-    text: `Your appointment has been confirmed for ${date} at ${timeSlot}.\n\nThank you for using NHIS Appointment System.`,
+    subject: "NHIS centre visit confirmation",
+    text: `Your ${serviceLabel} centre visit is confirmed for ${date} at ${timeSlot}.\n\nPlease bring valid ID and any required documents. Arrive 10 minutes early.`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -316,12 +322,16 @@ async function sendAppointmentConfirmation(to, date, timeSlot) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>✅ Appointment Confirmed</h1>
+            <h1>✅ Centre visit confirmed</h1>
           </div>
           
-          <p>Your appointment has been successfully confirmed!</p>
+          <p>Your NHIA service centre booking is confirmed.</p>
           
           <div class="appointment-details">
+            <div class="detail-row">
+              <span class="detail-label">Service:</span>
+              <span class="detail-value">${serviceLabel}</span>
+            </div>
             <div class="detail-row">
               <span class="detail-label">📅 Date:</span>
               <span class="detail-value">${date}</span>
@@ -333,7 +343,7 @@ async function sendAppointmentConfirmation(to, date, timeSlot) {
           </div>
           
           <p style="text-align: center; margin-top: 20px;">
-            Please arrive 10 minutes before your scheduled time.
+            Bring valid ID and required documents. Arrive 10 minutes before your slot.
           </p>
           
           <div class="footer">

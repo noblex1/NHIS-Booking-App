@@ -11,7 +11,9 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  Download,
 } from "lucide-react";
+import { exportAppointmentsToCSV } from "@/lib/export-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getServiceTypeLabel } from "@/lib/nhis-services";
 
 export const Route = createFileRoute("/admin/_layout/appointments")({
   head: () => ({
@@ -62,6 +65,7 @@ function AppointmentsManagementPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -107,6 +111,32 @@ function AppointmentsManagementPage() {
     }
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const response = await adminAppointmentsApi.getAll({
+        page: 1,
+        limit: 1000,
+        search,
+        status: status === "all" ? undefined : status,
+      });
+      if (response.appointments.length === 0) {
+        toast.error("No appointments to export");
+        return;
+      }
+      exportAppointmentsToCSV(response.appointments);
+      toast.success(`Exported ${response.appointments.length} appointments`);
+    } catch (error) {
+      if (error instanceof AdminApiError) {
+        toast.error(error.message);
+      } else {
+        toast.error("Export failed");
+      }
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleteId) return;
 
@@ -128,11 +158,21 @@ function AppointmentsManagementPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Appointments Management</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          View and manage all appointments
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Centre bookings</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            NHIS registration and renewal visits at service centres
+          </p>
+        </div>
+        <Button variant="outline" onClick={handleExport} disabled={exporting}>
+          {exporting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
+          Export CSV
+        </Button>
       </div>
 
       {/* Filters */}
@@ -183,6 +223,7 @@ function AppointmentsManagementPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Patient</TableHead>
+                  <TableHead>Service</TableHead>
                   <TableHead>NHIS Number</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Time</TableHead>
@@ -199,6 +240,9 @@ function AppointmentsManagementPage() {
                         <p className="font-medium">{apt.userId?.fullName || "Unknown"}</p>
                         <p className="text-xs text-muted-foreground">{apt.userId?.email}</p>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {getServiceTypeLabel(apt.serviceType)}
                     </TableCell>
                     <TableCell className="font-mono text-sm">
                       {apt.userId?.nhisNumber || "N/A"}

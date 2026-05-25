@@ -22,7 +22,9 @@ import { Route as AdminLayoutRouteImport } from './routes/admin/_layout'
 import { Route as AdminLayoutUsersRouteImport } from './routes/admin/_layout/users'
 import { Route as AdminLayoutOfficialsRouteImport } from './routes/admin/_layout/officials'
 import { Route as AdminLayoutDashboardRouteImport } from './routes/admin/_layout/dashboard'
+import { Route as AdminLayoutAvailabilityRouteImport } from './routes/admin/_layout/availability'
 import { Route as AdminLayoutAppointmentsRouteImport } from './routes/admin/_layout/appointments'
+import { Route as AdminLayoutUsersUserIdRouteImport } from './routes/admin/_layout/users/$userId'
 
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
@@ -89,10 +91,20 @@ const AdminLayoutDashboardRoute = AdminLayoutDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminLayoutRoute,
 } as any)
+const AdminLayoutAvailabilityRoute = AdminLayoutAvailabilityRouteImport.update({
+  id: '/availability',
+  path: '/availability',
+  getParentRoute: () => AdminLayoutRoute,
+} as any)
 const AdminLayoutAppointmentsRoute = AdminLayoutAppointmentsRouteImport.update({
   id: '/appointments',
   path: '/appointments',
   getParentRoute: () => AdminLayoutRoute,
+} as any)
+const AdminLayoutUsersUserIdRoute = AdminLayoutUsersUserIdRouteImport.update({
+  id: '/$userId',
+  path: '/$userId',
+  getParentRoute: () => AdminLayoutUsersRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -107,9 +119,11 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
+  '/admin/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/dashboard': typeof AdminLayoutDashboardRoute
   '/admin/officials': typeof AdminLayoutOfficialsRoute
-  '/admin/users': typeof AdminLayoutUsersRoute
+  '/admin/users': typeof AdminLayoutUsersRouteWithChildren
+  '/admin/users/$userId': typeof AdminLayoutUsersUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,9 +137,11 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
+  '/admin/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/dashboard': typeof AdminLayoutDashboardRoute
   '/admin/officials': typeof AdminLayoutOfficialsRoute
-  '/admin/users': typeof AdminLayoutUsersRoute
+  '/admin/users': typeof AdminLayoutUsersRouteWithChildren
+  '/admin/users/$userId': typeof AdminLayoutUsersUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,9 +156,11 @@ export interface FileRoutesById {
   '/admin/_layout': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/admin/_layout/appointments': typeof AdminLayoutAppointmentsRoute
+  '/admin/_layout/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/_layout/dashboard': typeof AdminLayoutDashboardRoute
   '/admin/_layout/officials': typeof AdminLayoutOfficialsRoute
-  '/admin/_layout/users': typeof AdminLayoutUsersRoute
+  '/admin/_layout/users': typeof AdminLayoutUsersRouteWithChildren
+  '/admin/_layout/users/$userId': typeof AdminLayoutUsersUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -158,9 +176,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/login'
     | '/admin/appointments'
+    | '/admin/availability'
     | '/admin/dashboard'
     | '/admin/officials'
     | '/admin/users'
+    | '/admin/users/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -174,9 +194,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/login'
     | '/admin/appointments'
+    | '/admin/availability'
     | '/admin/dashboard'
     | '/admin/officials'
     | '/admin/users'
+    | '/admin/users/$userId'
   id:
     | '__root__'
     | '/'
@@ -190,9 +212,11 @@ export interface FileRouteTypes {
     | '/admin/_layout'
     | '/admin/login'
     | '/admin/_layout/appointments'
+    | '/admin/_layout/availability'
     | '/admin/_layout/dashboard'
     | '/admin/_layout/officials'
     | '/admin/_layout/users'
+    | '/admin/_layout/users/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -301,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLayoutDashboardRouteImport
       parentRoute: typeof AdminLayoutRoute
     }
+    '/admin/_layout/availability': {
+      id: '/admin/_layout/availability'
+      path: '/availability'
+      fullPath: '/admin/availability'
+      preLoaderRoute: typeof AdminLayoutAvailabilityRouteImport
+      parentRoute: typeof AdminLayoutRoute
+    }
     '/admin/_layout/appointments': {
       id: '/admin/_layout/appointments'
       path: '/appointments'
@@ -308,21 +339,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLayoutAppointmentsRouteImport
       parentRoute: typeof AdminLayoutRoute
     }
+    '/admin/_layout/users/$userId': {
+      id: '/admin/_layout/users/$userId'
+      path: '/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AdminLayoutUsersUserIdRouteImport
+      parentRoute: typeof AdminLayoutUsersRoute
+    }
   }
 }
 
+interface AdminLayoutUsersRouteChildren {
+  AdminLayoutUsersUserIdRoute: typeof AdminLayoutUsersUserIdRoute
+}
+
+const AdminLayoutUsersRouteChildren: AdminLayoutUsersRouteChildren = {
+  AdminLayoutUsersUserIdRoute: AdminLayoutUsersUserIdRoute,
+}
+
+const AdminLayoutUsersRouteWithChildren =
+  AdminLayoutUsersRoute._addFileChildren(AdminLayoutUsersRouteChildren)
+
 interface AdminLayoutRouteChildren {
   AdminLayoutAppointmentsRoute: typeof AdminLayoutAppointmentsRoute
+  AdminLayoutAvailabilityRoute: typeof AdminLayoutAvailabilityRoute
   AdminLayoutDashboardRoute: typeof AdminLayoutDashboardRoute
   AdminLayoutOfficialsRoute: typeof AdminLayoutOfficialsRoute
-  AdminLayoutUsersRoute: typeof AdminLayoutUsersRoute
+  AdminLayoutUsersRoute: typeof AdminLayoutUsersRouteWithChildren
 }
 
 const AdminLayoutRouteChildren: AdminLayoutRouteChildren = {
   AdminLayoutAppointmentsRoute: AdminLayoutAppointmentsRoute,
+  AdminLayoutAvailabilityRoute: AdminLayoutAvailabilityRoute,
   AdminLayoutDashboardRoute: AdminLayoutDashboardRoute,
   AdminLayoutOfficialsRoute: AdminLayoutOfficialsRoute,
-  AdminLayoutUsersRoute: AdminLayoutUsersRoute,
+  AdminLayoutUsersRoute: AdminLayoutUsersRouteWithChildren,
 }
 
 const AdminLayoutRouteWithChildren = AdminLayoutRoute._addFileChildren(

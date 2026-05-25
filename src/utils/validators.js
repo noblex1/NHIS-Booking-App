@@ -30,6 +30,14 @@ const resendOtpValidator = [
 const createAppointmentValidator = [
   body("date").isISO8601().withMessage("date must be a valid date (YYYY-MM-DD)"),
   body("timeSlot").trim().notEmpty().withMessage("timeSlot is required"),
+  body("serviceType")
+    .isIn(["new_registration", "renewal"])
+    .withMessage("serviceType must be new_registration or renewal"),
+];
+
+const scheduleRangeValidator = [
+  query("from").notEmpty().withMessage("from is required"),
+  query("to").notEmpty().withMessage("to is required"),
 ];
 
 const availableSlotsValidator = [
@@ -42,5 +50,6 @@ module.exports = {
   otpVerifyValidator,
   resendOtpValidator,
   createAppointmentValidator,
+  scheduleRangeValidator,
   availableSlotsValidator,
 };

@@ -11,17 +11,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CalendarCheck, CheckCircle2, Loader2 } from "lucide-react";
+import { CalendarCheck, CheckCircle2, Loader2, FilePlus2, RefreshCw } from "lucide-react";
 import { authStore, useAuthStore } from "@/lib/auth-store";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
 import { cn } from "@/lib/utils";
-import { appointmentsApi, ApiError } from "@/lib/api-client";
+import { appointmentsApi, ApiError, type NhisServiceType } from "@/lib/api-client";
+import { NHIS_SERVICES } from "@/lib/nhis-services";
 
 export const Route = createFileRoute("/book")({
   head: () => ({
     meta: [
-      { title: "Book Appointment - NHIS Booking" },
-      { name: "description", content: "Choose a date and time slot for your appointment." },
+      { title: "Book centre visit - NHIS" },
+      {
+        name: "description",
+        content: "Book an NHIA service centre slot for registration or renewal.",
+      },
     ],
   }),
   component: BookPage,
@@ -38,10 +42,30 @@ function BookPage() {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [blockedDates, setBlockedDates] = useState<Set<string>>(new Set());
+  const [openDates, setOpenDates] = useState<Set<string>>(new Set());
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [serviceType, setServiceType] = useState<NhisServiceType>("renewal");
 
   useEffect(() => {
     if (!user) navigate({ to: "/login" });
   }, [user, navigate]);
+
+  useEffect(() => {
+    const from = format(startOfMonth(calendarMonth), "yyyy-MM-dd");
+    const to = format(endOfMonth(addMonths(calendarMonth, 1)), "yyyy-MM-dd");
+
+    appointmentsApi
+      .getBookingSchedule(from, to)
+      .then((response) => {
+        setBlockedDates(new Set(response.blockedDates));
+        setOpenDates(new Set(response.openDates));
+      })
+      .catch(() => {
+        setBlockedDates(new Set());
+        setOpenDates(new Set());
+      });
+  }, [calendarMonth]);
 
   // Fetch available slots when date changes
   useEffect(() => {
@@ -58,6 +82,9 @@ function BookPage() {
         const response = await appointmentsApi.getAvailableSlots(dateStr);
         setAvailableSlots(response.availableSlots);
         setBookedSlots(response.bookedSlots);
+        if (response.dateUnavailable) {
+          setSlot(null);
+        }
       } catch (error) {
         if (error instanceof ApiError) {
           toast.error("Failed to load available slots");
@@ -84,6 +111,7 @@ function BookPage() {
       const response = await appointmentsApi.createAppointment({
         date: dateStr,
         timeSlot: slot,
+        serviceType,
       });
 
       // Add appointment to local store
@@ -91,7 +119,7 @@ function BookPage() {
       
       setConfirming(false);
       setDone(true);
-      toast.success("Appointment confirmed! Check your email for confirmation.");
+      toast.success("Centre visit booked! Check your email for confirmation.");
     } catch (error) {
       setConfirming(false);
       if (error instanceof ApiError) {
@@ -150,11 +178,50 @@ function BookPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 pb-24 md:pb-8 md:py-8 sm:px-6">
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-        <p className="text-sm font-medium text-primary">Booking</p>
-        <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">Book an appointment</h1>
+        <p className="text-sm font-medium text-primary">Book a centre visit</p>
+        <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">
+          NHIS registration or renewal
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-          Choose a date and an available time slot.
+          Choose your service, then pick a date and time at an NHIA service centre — similar to
+          booking a passport application slot.
         </p>
+      </div>
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {(Object.keys(NHIS_SERVICES) as NhisServiceType[]).map((key) => {
+          const service = NHIS_SERVICES[key];
+          const active = serviceType === key;
+          const Icon = key === "new_registration" ? FilePlus2 : RefreshCw;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setServiceType(key)}
+              className={cn(
+                "rounded-2xl border p-4 text-left transition-all",
+                active
+                  ? "border-primary bg-primary/5 shadow-[var(--shadow-card)]"
+                  : "border-border bg-card hover:border-primary/40",
+              )}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={cn(
+                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                    active ? "bg-primary text-primary-foreground" : "bg-accent text-foreground",
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground">{service.label}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{service.description}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       <div className="mt-6 grid gap-4 lg:mt-8 lg:grid-cols-[auto_1fr] lg:gap-6">
@@ -164,6 +231,8 @@ function BookPage() {
             <Calendar
               mode="single"
               selected={date}
+              month={calendarMonth}
+              onMonthChange={setCalendarMonth}
               onSelect={(d) => {
                 setDate(d);
                 setSlot(null);
@@ -171,7 +240,11 @@ function BookPage() {
               disabled={(d) => {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                return d < today || d.getDay() === 0;
+                if (d < today) return true;
+                const key = format(d, "yyyy-MM-dd");
+                if (blockedDates.has(key)) return true;
+                if (d.getDay() === 0 && !openDates.has(key)) return true;
+                return false;
               }}
               className={cn("pointer-events-auto p-0")}
             />
@@ -227,7 +300,10 @@ function BookPage() {
               
               {availableSlots.length === 0 && (
                 <p className="mt-4 text-center text-sm text-muted-foreground">
-                  No available slots for this date. Please select another date.
+                  {date &&
+                  blockedDates.has(format(date, "yyyy-MM-dd"))
+                    ? "This date is not available for booking."
+                    : "No available slots for this date. Please select another date."}
                 </p>
               )}
             </>
@@ -247,7 +323,7 @@ function BookPage() {
               )}
             </div>
             <Button size="lg" onClick={open} disabled={!date || !slot || loadingSlots} className="w-full sm:w-auto">
-              Confirm Appointment
+              Book centre visit
             </Button>
           </div>
         </div>
@@ -261,9 +337,9 @@ function BookPage() {
                 <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-secondary/10">
                   <CheckCircle2 className="h-7 w-7 text-secondary" />
                 </div>
-                <DialogTitle className="text-center">Appointment Confirmed</DialogTitle>
+                <DialogTitle className="text-center">Centre visit confirmed</DialogTitle>
                 <DialogDescription className="text-center">
-                  We booked your visit for{" "}
+                  {NHIS_SERVICES[serviceType].label} on{" "}
                   <span className="font-medium text-foreground">
                     {date && format(date, "EEEE, MMM d")} at {slot}
                   </span>
@@ -282,8 +358,9 @@ function BookPage() {
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Confirm your appointment</DialogTitle>
+                <DialogTitle>Confirm your centre visit</DialogTitle>
                 <DialogDescription>
+                  {NHIS_SERVICES[serviceType].label} —{" "}
                   {date && format(date, "EEEE, MMMM d")} at {slot}. Please confirm to proceed.
                 </DialogDescription>
               </DialogHeader>

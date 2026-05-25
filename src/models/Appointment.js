@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { APPOINTMENT_STATUS } = require("../config/constants");
+const { APPOINTMENT_STATUS, NHIS_SERVICE_TYPES } = require("../config/constants");
 
 const appointmentSchema = new mongoose.Schema(
   {
@@ -18,6 +18,13 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      index: true,
+    },
+    serviceType: {
+      type: String,
+      enum: Object.values(NHIS_SERVICE_TYPES),
+      default: NHIS_SERVICE_TYPES.RENEWAL,
+      required: true,
       index: true,
     },
     status: {

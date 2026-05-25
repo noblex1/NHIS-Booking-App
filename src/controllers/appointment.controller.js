@@ -1,12 +1,18 @@
 const Appointment = require("../models/Appointment");
 const ApiError = require("../utils/ApiError");
 const asyncHandler = require("../utils/asyncHandler");
-const { DEFAULT_TIME_SLOTS, APPOINTMENT_STATUS } = require("../config/constants");
+const {
+  DEFAULT_TIME_SLOTS,
+  APPOINTMENT_STATUS,
+  NHIS_SERVICE_TYPES,
+  NHIS_SERVICE_TYPE_VALUES,
+} = require("../config/constants");
 const { isPastDate, normalizeDateOnly } = require("../utils/date");
 const { sendAppointmentConfirmation } = require("../services/email.service");
+const { isDateBookable } = require("../services/bookingSchedule.service");
 
 const createAppointment = asyncHandler(async (req, res) => {
-  const { date, timeSlot } = req.body;
+  const { date, timeSlot, serviceType } = req.body;
   const normalizedDate = normalizeDateOnly(date);
   if (!normalizedDate) {
     throw new ApiError(400, "Invalid date");
@@ -16,8 +22,18 @@ const createAppointment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Cannot book an appointment in the past");
   }
 
+  const bookable = await isDateBookable(normalizedDate);
+  if (!bookable) {
+    throw new ApiError(400, "This date is not available for booking");
+  }
+
   if (!DEFAULT_TIME_SLOTS.includes(timeSlot)) {
     throw new ApiError(400, "Invalid time slot");
+  }
+
+  const normalizedServiceType = serviceType || NHIS_SERVICE_TYPES.RENEWAL;
+  if (!NHIS_SERVICE_TYPE_VALUES.includes(normalizedServiceType)) {
+    throw new ApiError(400, "Invalid service type");
   }
 
   const existing = await Appointment.findOne({
@@ -34,6 +50,7 @@ const createAppointment = asyncHandler(async (req, res) => {
     userId: req.user._id,
     date: normalizedDate,
     timeSlot: timeSlot.trim(),
+    serviceType: normalizedServiceType,
     status: APPOINTMENT_STATUS.CONFIRMED,
   });
 
@@ -41,11 +58,12 @@ const createAppointment = asyncHandler(async (req, res) => {
     req.user.email,
     normalizedDate.toISOString().slice(0, 10),
     timeSlot,
+    normalizedServiceType,
   );
 
   res.status(201).json({
     success: true,
-    message: "Appointment booked successfully",
+    message: "Centre visit booked successfully",
     appointment,
   });
 });
@@ -65,6 +83,17 @@ const getAvailableSlots = asyncHandler(async (req, res) => {
   const normalizedDate = normalizeDateOnly(req.query.date);
   if (!normalizedDate) {
     throw new ApiError(400, "Invalid date");
+  }
+
+  const bookable = await isDateBookable(normalizedDate);
+  if (!bookable) {
+    return res.status(200).json({
+      success: true,
+      date: normalizedDate.toISOString().slice(0, 10),
+      availableSlots: [],
+      bookedSlots: [],
+      dateUnavailable: true,
+    });
   }
 
   const booked = await Appointment.find({

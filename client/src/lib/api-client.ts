@@ -204,11 +204,14 @@ export const authApi = {
 // Appointments API
 // ============================================================================
 
+export type NhisServiceType = "new_registration" | "renewal";
+
 export interface Appointment {
   _id: string;
   userId: string;
   date: string;
   timeSlot: string;
+  serviceType: NhisServiceType;
   status: "Confirmed" | "Pending" | "Cancelled";
   createdAt: string;
   updatedAt: string;
@@ -219,11 +222,20 @@ export interface GetAvailableSlotsResponse {
   date: string;
   availableSlots: string[];
   bookedSlots: string[];
+  dateUnavailable?: boolean;
+}
+
+export interface BookingScheduleResponse {
+  success: boolean;
+  rules: Array<{ date: string; type: "blocked" | "open"; reason: string }>;
+  blockedDates: string[];
+  openDates: string[];
 }
 
 export interface CreateAppointmentRequest {
   date: string; // YYYY-MM-DD
   timeSlot: string;
+  serviceType: NhisServiceType;
 }
 
 export interface CreateAppointmentResponse {
@@ -238,6 +250,11 @@ export interface GetMyAppointmentsResponse {
 }
 
 export const appointmentsApi = {
+  async getBookingSchedule(from: string, to: string): Promise<BookingScheduleResponse> {
+    const query = new URLSearchParams({ from, to });
+    return fetchApi<BookingScheduleResponse>(`/api/appointments/schedule?${query}`);
+  },
+
   /**
    * Get available time slots for a specific date
    */

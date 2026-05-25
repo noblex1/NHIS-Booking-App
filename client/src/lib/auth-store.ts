@@ -6,6 +6,7 @@ export type Appointment = {
   id: string;
   date: string; // ISO date
   time: string;
+  serviceType?: "new_registration" | "renewal";
   status: "Confirmed" | "Pending" | "Cancelled";
   reason?: string;
 };
@@ -80,6 +81,7 @@ function convertApiAppointment(apiAppointment: ApiAppointment): Appointment {
     id: apiAppointment._id,
     date: apiAppointment.date,
     time: apiAppointment.timeSlot,
+    serviceType: apiAppointment.serviceType,
     status: apiAppointment.status,
   };
 }

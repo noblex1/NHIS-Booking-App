@@ -102,6 +102,31 @@ const updateUser = asyncHandler(async (req, res) => {
   });
 });
 
+const bulkDeleteUsers = asyncHandler(async (req, res) => {
+  const { ids } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    throw new ApiError(400, "ids array is required");
+  }
+
+  const users = await User.find({ _id: { $in: ids } });
+
+  if (users.length === 0) {
+    throw new ApiError(404, "No users found for the provided ids");
+  }
+
+  const userIds = users.map((user) => user._id);
+
+  await Appointment.deleteMany({ userId: { $in: userIds } });
+  await User.deleteMany({ _id: { $in: userIds } });
+
+  res.status(200).json({
+    success: true,
+    message: `${users.length} user(s) deleted successfully`,
+    deletedCount: users.length,
+  });
+});
+
 const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   
@@ -151,6 +176,7 @@ module.exports = {
   getAllUsers,
   getUserById,
   updateUser,
+  bulkDeleteUsers,
   deleteUser,
   getUserStats,
 };
