@@ -22,11 +22,13 @@ export function AppHeader() {
     navigate({ to: "/" });
   };
 
-  // Hide header on auth pages for cleaner mobile experience
+  // Hide on citizen auth pages and staff portals (admin / official have their own chrome)
   const authPages = ["/login", "/register", "/verify"];
   const isAuthPage = authPages.includes(currentPath);
+  const isStaffPortal =
+    currentPath.startsWith("/admin") || currentPath.startsWith("/official");
 
-  if (isAuthPage) {
+  if (isAuthPage || isStaffPortal) {
     return null;
   }
 

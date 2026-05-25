@@ -47,9 +47,11 @@ export function MobileBottomNav() {
     return null;
   }
 
-  // Don't show on auth pages
   const authPages = ["/login", "/register", "/verify"];
-  if (authPages.includes(currentPath)) {
+  const isStaffPortal =
+    currentPath.startsWith("/admin") || currentPath.startsWith("/official");
+
+  if (authPages.includes(currentPath) || isStaffPortal) {
     return null;
   }
 

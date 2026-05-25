@@ -1,7 +1,11 @@
-import { Outlet, createRootRoute, Link } from "@tanstack/react-router";
+import { Outlet, createRootRoute, Link, useRouterState } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+
+function isStaffPortalPath(pathname: string) {
+  return pathname.startsWith("/admin") || pathname.startsWith("/official");
+}
 
 function NotFoundComponent() {
   return (
@@ -31,14 +35,17 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const showPublicChrome = !isStaffPortalPath(pathname);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <AppHeader />
+      {showPublicChrome && <AppHeader />}
       <main className="flex-1">
         <Outlet />
       </main>
-      <MobileBottomNav />
-      <Toaster richColors position="top-right" />
+      {showPublicChrome && <MobileBottomNav />}
+      {showPublicChrome && <Toaster richColors position="top-right" />}
     </div>
   );
 }
