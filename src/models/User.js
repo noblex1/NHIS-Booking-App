@@ -5,9 +5,9 @@ const userSchema = new mongoose.Schema(
   {
     fullName: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 100,
+      default: "",
     },
     nhisNumber: {
       type: String,
@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
     },
     dateOfBirth: {
       type: Date,
-      required: true,
+      required: false,
     },
     email: {
       type: String,
@@ -41,12 +41,16 @@ const userSchema = new mongoose.Schema(
   { timestamps: { createdAt: true, updatedAt: true } },
 );
 
-// Hash password before saving
 userSchema.pre("save", async function (next) {
+  if (!this.fullName && this.email) {
+    const local = this.email.split("@")[0] || "Applicant";
+    this.fullName = local.replace(/[._-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
   if (!this.isModified("password")) {
     return next();
   }
-  
+
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -56,12 +60,10 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// Method to compare password
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Don't return password in JSON responses
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;

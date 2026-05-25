@@ -2,8 +2,6 @@ const User = require("../models/User");
 const ApiError = require("../utils/ApiError");
 const asyncHandler = require("../utils/asyncHandler");
 const { signAuthToken } = require("../utils/jwt");
-const { normalizeDateOnly } = require("../utils/date");
-const { generateUniqueNhisNumber } = require("../utils/nhis");
 const { createAndSendOtp, verifyOtpCode } = require("../services/otp.service");
 
 const login = asyncHandler(async (req, res) => {
@@ -34,12 +32,7 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const register = asyncHandler(async (req, res) => {
-  const { fullName, dateOfBirth, email, password } = req.body;
-  const normalizedDob = normalizeDateOnly(dateOfBirth);
-  if (!normalizedDob) {
-    throw new ApiError(400, "Invalid dateOfBirth");
-  }
-
+  const { email, password } = req.body;
   const cleanEmail = email.trim().toLowerCase();
 
   const existingVerified = await User.findOne({
@@ -51,15 +44,11 @@ const register = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User already exists. Please login.");
   }
 
-  // Delete any unverified user with same email
   await User.deleteOne({ email: cleanEmail, isVerified: false });
 
-  // Create new user
-  const user = await User.create({
-    fullName: fullName.trim(),
-    dateOfBirth: normalizedDob,
+  await User.create({
     email: cleanEmail,
-    password: password,
+    password,
     isVerified: false,
   });
 
@@ -82,9 +71,6 @@ const verifyOtp = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Registration not found. Please register first.");
   }
 
-  if (!user.nhisNumber) {
-    user.nhisNumber = await generateUniqueNhisNumber();
-  }
   user.isVerified = true;
   await user.save();
 
@@ -92,7 +78,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "OTP verified successfully",
+    message: "Account verified successfully",
     token,
     user,
   });

@@ -4,19 +4,23 @@ import type { User as ApiUser, Appointment as ApiAppointment } from "./api-clien
 
 export type Appointment = {
   id: string;
-  date: string; // ISO date
+  date: string;
   time: string;
   serviceType?: "new_registration" | "renewal";
+  applicationStatus?: "submitted" | "at_centre" | "completed" | "cancelled";
+  referenceNumber?: string;
+  centreName?: string;
+  feeAmount?: number;
+  feePaid?: boolean;
   status: "Confirmed" | "Pending" | "Cancelled";
-  reason?: string;
 };
 
 export type User = {
   id: string;
   fullName: string;
-  nhisNumber: string;
+  nhisNumber?: string;
   email: string;
-  dateOfBirth: string;
+  dateOfBirth?: string;
   isVerified: boolean;
 };
 
@@ -24,7 +28,7 @@ type State = {
   user: User | null;
   token: string | null;
   appointments: Appointment[];
-  pendingRegistration: { fullName: string; dateOfBirth: string; email: string } | null;
+  pendingRegistration: { email: string } | null;
 };
 
 const STORAGE_KEY = "nhis_state_v2";
@@ -77,11 +81,20 @@ function convertApiUser(apiUser: ApiUser): User {
 
 // Convert API appointment to local appointment format
 function convertApiAppointment(apiAppointment: ApiAppointment): Appointment {
+  const centre =
+    typeof apiAppointment.centreId === "object" && apiAppointment.centreId
+      ? apiAppointment.centreId
+      : null;
   return {
     id: apiAppointment._id,
     date: apiAppointment.date,
     time: apiAppointment.timeSlot,
     serviceType: apiAppointment.serviceType,
+    applicationStatus: apiAppointment.applicationStatus,
+    referenceNumber: apiAppointment.referenceNumber,
+    centreName: centre?.name,
+    feeAmount: apiAppointment.feeAmount,
+    feePaid: apiAppointment.feePaid,
     status: apiAppointment.status,
   };
 }
@@ -125,7 +138,7 @@ export const authStore = {
   /**
    * Start registration process (store data temporarily)
    */
-  startRegistration(data: { fullName: string; dateOfBirth: string; email: string }) {
+  startRegistration(data: { email: string }) {
     state = { ...state, pendingRegistration: data };
     persist();
   },

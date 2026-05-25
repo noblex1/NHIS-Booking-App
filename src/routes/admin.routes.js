@@ -19,9 +19,16 @@ const {
   getAllAppointments,
   getAppointmentById,
   updateAppointmentStatus,
+  updateApplication,
   deleteAppointment,
   getAppointmentStats,
 } = require("../controllers/admin.appointments.controller");
+const {
+  getAllCentres,
+  createCentre,
+  updateCentre,
+  deleteCentre,
+} = require("../controllers/admin.centres.controller");
 const {
   getAllOfficials,
   getOfficialById,
@@ -157,11 +164,63 @@ router.put(
   updateAppointmentStatus,
 );
 
+router.put(
+  "/appointments/:id/application",
+  adminAuth,
+  [
+    param("id").isMongoId().withMessage("Invalid appointment ID"),
+    body("applicationStatus")
+      .optional()
+      .isIn(["submitted", "at_centre", "completed", "cancelled"]),
+    body("feePaid").optional().isBoolean(),
+    body("feePaymentReference").optional().isString(),
+    body("assignNhisNumber").optional().isString(),
+    validate,
+  ],
+  updateApplication,
+);
+
 router.delete(
   "/appointments/:id",
   adminAuth,
   [param("id").isMongoId().withMessage("Invalid appointment ID"), validate],
   deleteAppointment,
+);
+
+// ============================================================================
+// Service centres
+// ============================================================================
+
+router.get("/centres", adminAuth, getAllCentres);
+
+router.post(
+  "/centres",
+  adminAuth,
+  [
+    body("name").trim().notEmpty(),
+    body("code").trim().notEmpty(),
+    body("address").trim().notEmpty(),
+    body("city").trim().notEmpty(),
+    body("region").trim().notEmpty(),
+    body("phone").optional().isString(),
+    body("isActive").optional().isBoolean(),
+    validate,
+  ],
+  createCentre,
+);
+
+router.put(
+  "/centres/:id",
+  adminAuth,
+  [param("id").isMongoId(), validate],
+  updateCentre,
+);
+
+router.delete(
+  "/centres/:id",
+  adminAuth,
+  [param("id").isMongoId(), validate],
+  deleteCentre,
 );
 
 // ============================================================================

@@ -266,9 +266,15 @@ export const adminUsersApi = {
 export interface Appointment {
   _id: string;
   userId: any;
+  centreId?: any;
   date: string;
   timeSlot: string;
   serviceType?: "new_registration" | "renewal";
+  applicationStatus?: "submitted" | "at_centre" | "completed" | "cancelled";
+  referenceNumber?: string;
+  feeAmount?: number;
+  feePaid?: boolean;
+  feePaymentReference?: string;
   status: "Confirmed" | "Pending" | "Cancelled";
   createdAt: string;
   updatedAt: string;
@@ -323,6 +329,21 @@ export const adminAppointmentsApi = {
     return fetchAdminApi(`/api/admin/appointments/${id}/status`, {
       method: "PUT",
       body: JSON.stringify({ status }),
+    });
+  },
+
+  async updateApplication(
+    id: string,
+    data: {
+      applicationStatus?: string;
+      feePaid?: boolean;
+      feePaymentReference?: string;
+      assignNhisNumber?: string;
+    },
+  ): Promise<any> {
+    return fetchAdminApi(`/api/admin/appointments/${id}/application`, {
+      method: "PUT",
+      body: JSON.stringify(data),
     });
   },
 
@@ -456,6 +477,41 @@ export interface BookingScheduleResponse {
   openDates: string[];
 }
 
+export interface AdminServiceCentre {
+  _id: string;
+  name: string;
+  code: string;
+  address: string;
+  city: string;
+  region: string;
+  phone?: string;
+  isActive: boolean;
+}
+
+export const adminCentresApi = {
+  async getAll(): Promise<{ success: boolean; centres: AdminServiceCentre[] }> {
+    return fetchAdminApi("/api/admin/centres");
+  },
+
+  async create(data: Partial<AdminServiceCentre>): Promise<any> {
+    return fetchAdminApi("/api/admin/centres", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async update(id: string, data: Partial<AdminServiceCentre>): Promise<any> {
+    return fetchAdminApi(`/api/admin/centres/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async delete(id: string): Promise<any> {
+    return fetchAdminApi(`/api/admin/centres/${id}`, { method: "DELETE" });
+  },
+};
+
 export const adminScheduleApi = {
   async getRange(from: string, to: string): Promise<BookingScheduleResponse> {
     const query = new URLSearchParams({ from, to });
@@ -488,6 +544,7 @@ export const adminApi = {
   appointments: adminAppointmentsApi,
   officials: adminOfficialsApi,
   schedule: adminScheduleApi,
+  centres: adminCentresApi,
 };
 
 export default adminApi;

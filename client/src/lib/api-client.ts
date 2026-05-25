@@ -68,8 +68,6 @@ async function fetchApi<T>(
 // ============================================================================
 
 export interface RegisterRequest {
-  fullName: string;
-  dateOfBirth: string; // YYYY-MM-DD
   email: string;
   password: string;
 }
@@ -88,8 +86,8 @@ export interface User {
   _id: string;
   fullName: string;
   email: string;
-  nhisNumber: string;
-  dateOfBirth: string;
+  nhisNumber?: string;
+  dateOfBirth?: string;
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
@@ -206,12 +204,30 @@ export const authApi = {
 
 export type NhisServiceType = "new_registration" | "renewal";
 
+export interface ServiceCentre {
+  _id: string;
+  name: string;
+  code: string;
+  address: string;
+  city: string;
+  region: string;
+  phone?: string;
+  isActive: boolean;
+}
+
 export interface Appointment {
   _id: string;
   userId: string;
+  centreId: ServiceCentre | string;
   date: string;
   timeSlot: string;
   serviceType: NhisServiceType;
+  applicationStatus: "submitted" | "at_centre" | "completed" | "cancelled";
+  referenceNumber: string;
+  feeAmount: number;
+  feePaid: boolean;
+  feePaymentReference?: string;
+  documentsAcknowledged?: string[];
   status: "Confirmed" | "Pending" | "Cancelled";
   createdAt: string;
   updatedAt: string;
@@ -233,9 +249,12 @@ export interface BookingScheduleResponse {
 }
 
 export interface CreateAppointmentRequest {
-  date: string; // YYYY-MM-DD
+  date: string;
   timeSlot: string;
   serviceType: NhisServiceType;
+  centreId: string;
+  documentsAcknowledged: string[];
+  feePaymentReference?: string;
 }
 
 export interface CreateAppointmentResponse {
@@ -249,6 +268,12 @@ export interface GetMyAppointmentsResponse {
   appointments: Appointment[];
 }
 
+export const centresApi = {
+  async list(): Promise<{ success: boolean; centres: ServiceCentre[] }> {
+    return fetchApi("/api/centres");
+  },
+};
+
 export const appointmentsApi = {
   async getBookingSchedule(from: string, to: string): Promise<BookingScheduleResponse> {
     const query = new URLSearchParams({ from, to });
@@ -258,10 +283,9 @@ export const appointmentsApi = {
   /**
    * Get available time slots for a specific date
    */
-  async getAvailableSlots(date: string): Promise<GetAvailableSlotsResponse> {
-    return fetchApi<GetAvailableSlotsResponse>(
-      `/api/appointments/available?date=${date}`,
-    );
+  async getAvailableSlots(date: string, centreId: string): Promise<GetAvailableSlotsResponse> {
+    const query = new URLSearchParams({ date, centreId });
+    return fetchApi<GetAvailableSlotsResponse>(`/api/appointments/available?${query}`);
   },
 
   /**

@@ -22,6 +22,7 @@ import { Route as AdminLayoutRouteImport } from './routes/admin/_layout'
 import { Route as AdminLayoutUsersRouteImport } from './routes/admin/_layout/users'
 import { Route as AdminLayoutOfficialsRouteImport } from './routes/admin/_layout/officials'
 import { Route as AdminLayoutDashboardRouteImport } from './routes/admin/_layout/dashboard'
+import { Route as AdminLayoutCentresRouteImport } from './routes/admin/_layout/centres'
 import { Route as AdminLayoutAvailabilityRouteImport } from './routes/admin/_layout/availability'
 import { Route as AdminLayoutAppointmentsRouteImport } from './routes/admin/_layout/appointments'
 import { Route as AdminLayoutUsersUserIdRouteImport } from './routes/admin/_layout/users/$userId'
@@ -91,6 +92,11 @@ const AdminLayoutDashboardRoute = AdminLayoutDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminLayoutRoute,
 } as any)
+const AdminLayoutCentresRoute = AdminLayoutCentresRouteImport.update({
+  id: '/centres',
+  path: '/centres',
+  getParentRoute: () => AdminLayoutRoute,
+} as any)
 const AdminLayoutAvailabilityRoute = AdminLayoutAvailabilityRouteImport.update({
   id: '/availability',
   path: '/availability',
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/admin/login': typeof AdminLoginRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/availability': typeof AdminLayoutAvailabilityRoute
+  '/admin/centres': typeof AdminLayoutCentresRoute
   '/admin/dashboard': typeof AdminLayoutDashboardRoute
   '/admin/officials': typeof AdminLayoutOfficialsRoute
   '/admin/users': typeof AdminLayoutUsersRouteWithChildren
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/admin/login': typeof AdminLoginRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/availability': typeof AdminLayoutAvailabilityRoute
+  '/admin/centres': typeof AdminLayoutCentresRoute
   '/admin/dashboard': typeof AdminLayoutDashboardRoute
   '/admin/officials': typeof AdminLayoutOfficialsRoute
   '/admin/users': typeof AdminLayoutUsersRouteWithChildren
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/admin/login': typeof AdminLoginRoute
   '/admin/_layout/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/_layout/availability': typeof AdminLayoutAvailabilityRoute
+  '/admin/_layout/centres': typeof AdminLayoutCentresRoute
   '/admin/_layout/dashboard': typeof AdminLayoutDashboardRoute
   '/admin/_layout/officials': typeof AdminLayoutOfficialsRoute
   '/admin/_layout/users': typeof AdminLayoutUsersRouteWithChildren
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/appointments'
     | '/admin/availability'
+    | '/admin/centres'
     | '/admin/dashboard'
     | '/admin/officials'
     | '/admin/users'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/appointments'
     | '/admin/availability'
+    | '/admin/centres'
     | '/admin/dashboard'
     | '/admin/officials'
     | '/admin/users'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/admin/_layout/appointments'
     | '/admin/_layout/availability'
+    | '/admin/_layout/centres'
     | '/admin/_layout/dashboard'
     | '/admin/_layout/officials'
     | '/admin/_layout/users'
@@ -325,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLayoutDashboardRouteImport
       parentRoute: typeof AdminLayoutRoute
     }
+    '/admin/_layout/centres': {
+      id: '/admin/_layout/centres'
+      path: '/centres'
+      fullPath: '/admin/centres'
+      preLoaderRoute: typeof AdminLayoutCentresRouteImport
+      parentRoute: typeof AdminLayoutRoute
+    }
     '/admin/_layout/availability': {
       id: '/admin/_layout/availability'
       path: '/availability'
@@ -363,6 +382,7 @@ const AdminLayoutUsersRouteWithChildren =
 interface AdminLayoutRouteChildren {
   AdminLayoutAppointmentsRoute: typeof AdminLayoutAppointmentsRoute
   AdminLayoutAvailabilityRoute: typeof AdminLayoutAvailabilityRoute
+  AdminLayoutCentresRoute: typeof AdminLayoutCentresRoute
   AdminLayoutDashboardRoute: typeof AdminLayoutDashboardRoute
   AdminLayoutOfficialsRoute: typeof AdminLayoutOfficialsRoute
   AdminLayoutUsersRoute: typeof AdminLayoutUsersRouteWithChildren
@@ -371,6 +391,7 @@ interface AdminLayoutRouteChildren {
 const AdminLayoutRouteChildren: AdminLayoutRouteChildren = {
   AdminLayoutAppointmentsRoute: AdminLayoutAppointmentsRoute,
   AdminLayoutAvailabilityRoute: AdminLayoutAvailabilityRoute,
+  AdminLayoutCentresRoute: AdminLayoutCentresRoute,
   AdminLayoutDashboardRoute: AdminLayoutDashboardRoute,
   AdminLayoutOfficialsRoute: AdminLayoutOfficialsRoute,
   AdminLayoutUsersRoute: AdminLayoutUsersRouteWithChildren,

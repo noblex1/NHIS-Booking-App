@@ -44,6 +44,7 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getServiceTypeLabel } from "@/lib/nhis-services";
+import { APPLICATION_STATUS_LABELS } from "@/lib/nhis-application";
 
 export const Route = createFileRoute("/admin/_layout/appointments")({
   head: () => ({
@@ -94,6 +95,19 @@ function AppointmentsManagementPage() {
   const handleSearch = () => {
     setPage(1);
     fetchAppointments();
+  };
+
+  const handleApplicationStatusChange = async (id: string, applicationStatus: string) => {
+    setUpdatingStatus(id);
+    try {
+      await adminAppointmentsApi.updateApplication(id, { applicationStatus });
+      toast.success("Application status updated");
+      fetchAppointments();
+    } catch (error) {
+      if (error instanceof AdminApiError) toast.error(error.message);
+    } finally {
+      setUpdatingStatus(null);
+    }
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
@@ -223,8 +237,9 @@ function AppointmentsManagementPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Patient</TableHead>
+                  <TableHead>Reference</TableHead>
                   <TableHead>Service</TableHead>
-                  <TableHead>NHIS Number</TableHead>
+                  <TableHead>Application</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Status</TableHead>
@@ -241,11 +256,29 @@ function AppointmentsManagementPage() {
                         <p className="text-xs text-muted-foreground">{apt.userId?.email}</p>
                       </div>
                     </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {apt.referenceNumber || "—"}
+                    </TableCell>
                     <TableCell className="text-sm">
                       {getServiceTypeLabel(apt.serviceType)}
                     </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {apt.userId?.nhisNumber || "N/A"}
+                    <TableCell>
+                      <Select
+                        value={apt.applicationStatus || "submitted"}
+                        onValueChange={(v) => handleApplicationStatusChange(apt._id, v)}
+                        disabled={updatingStatus === apt._id}
+                      >
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(APPLICATION_STATUS_LABELS).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">

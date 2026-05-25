@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { appointmentsApi, ApiError } from "@/lib/api-client";
 import { getServiceTypeLabel } from "@/lib/nhis-services";
+import { ApplicationStatusTimeline } from "@/components/ApplicationStatusTimeline";
+import type { ApplicationStatus } from "@/lib/nhis-application";
 
 export const Route = createFileRoute("/appointments")({
   head: () => ({
@@ -125,10 +127,16 @@ function AppointmentsPage() {
                 >
                   <Calendar className="h-5 w-5" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="text-sm font-semibold text-foreground sm:text-base">
                     {getServiceTypeLabel(a.serviceType)}
                   </div>
+                  {a.referenceNumber && (
+                    <p className="mt-0.5 font-mono text-xs text-primary">{a.referenceNumber}</p>
+                  )}
+                  {a.centreName && (
+                    <p className="text-xs text-muted-foreground">{a.centreName}</p>
+                  )}
                   <div className="text-sm text-muted-foreground">
                     {format(new Date(a.date), "EEEE, MMMM d, yyyy")}
                   </div>
@@ -136,6 +144,18 @@ function AppointmentsPage() {
                     <Clock className="h-3.5 w-3.5" />
                     {a.time}
                   </div>
+                  {a.applicationStatus && a.applicationStatus !== "cancelled" && (
+                    <div className="mt-3">
+                      <ApplicationStatusTimeline
+                        status={a.applicationStatus as ApplicationStatus}
+                      />
+                    </div>
+                  )}
+                  {typeof a.feeAmount === "number" && a.feeAmount > 0 && (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Fee: GHS {a.feeAmount} {a.feePaid ? "(paid)" : "(unpaid)"}
+                    </p>
+                  )}
                 </div>
               </div>
 

@@ -248,15 +248,27 @@ const SERVICE_TYPE_LABELS = {
   renewal: "NHIS renewal",
 };
 
-async function sendAppointmentConfirmation(to, date, timeSlot, serviceType = "renewal") {
+async function sendAppointmentConfirmation(to, details) {
+  const {
+    date,
+    timeSlot,
+    serviceType = "renewal",
+    referenceNumber,
+    centreName,
+    feeAmount = 0,
+  } = details;
   const { fromHeader } = resolveFromAddress();
   const serviceLabel = SERVICE_TYPE_LABELS[serviceType] || "NHIS service";
+  const feeLine =
+    feeAmount > 0
+      ? `Fee: GHS ${feeAmount} (pay at centre or use your payment reference if provided).`
+      : "No online fee for this service.";
 
   const mailOptions = {
     from: fromHeader,
     to,
-    subject: "NHIS centre visit confirmation",
-    text: `Your ${serviceLabel} centre visit is confirmed for ${date} at ${timeSlot}.\n\nPlease bring valid ID and any required documents. Arrive 10 minutes early.`,
+    subject: `NHIS application confirmed — ${referenceNumber}`,
+    text: `Reference: ${referenceNumber}\nService: ${serviceLabel}\nCentre: ${centreName}\nDate: ${date} at ${timeSlot}\n${feeLine}\n\nBring required documents and arrive 10 minutes early.`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -329,8 +341,16 @@ async function sendAppointmentConfirmation(to, date, timeSlot, serviceType = "re
           
           <div class="appointment-details">
             <div class="detail-row">
+              <span class="detail-label">Reference:</span>
+              <span class="detail-value">${referenceNumber}</span>
+            </div>
+            <div class="detail-row">
               <span class="detail-label">Service:</span>
               <span class="detail-value">${serviceLabel}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Centre:</span>
+              <span class="detail-value">${centreName}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">📅 Date:</span>
@@ -339,6 +359,10 @@ async function sendAppointmentConfirmation(to, date, timeSlot, serviceType = "re
             <div class="detail-row">
               <span class="detail-label">🕐 Time:</span>
               <span class="detail-value">${timeSlot}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Fee:</span>
+              <span class="detail-value">${feeAmount > 0 ? `GHS ${feeAmount}` : "None"}</span>
             </div>
           </div>
           

@@ -66,7 +66,9 @@ export function exportUsersToCSV(users: any[]): void {
     fullName: user.fullName,
     email: user.email,
     nhisNumber: user.nhisNumber || "N/A",
-    dateOfBirth: new Date(user.dateOfBirth).toLocaleDateString(),
+    dateOfBirth: user.dateOfBirth
+      ? new Date(user.dateOfBirth).toLocaleDateString()
+      : "N/A",
     isVerified: user.isVerified ? "Yes" : "No",
     createdAt: new Date(user.createdAt).toLocaleString(),
   }));

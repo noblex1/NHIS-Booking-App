@@ -62,11 +62,16 @@ function DashboardPage() {
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
         <p className="text-sm font-medium text-primary">Dashboard</p>
         <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">Welcome, {user.fullName}</h1>
-        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-          NHIS #: <span className="font-medium text-foreground">{user.nhisNumber}</span>
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Email: <span className="font-medium text-foreground">{user.email}</span>
+        <p className="text-sm text-muted-foreground sm:text-base">
+          {user.nhisNumber ? (
+            <>
+              NHIS #: <span className="font-medium text-foreground">{user.nhisNumber}</span>
+            </>
+          ) : (
+            <span className="font-medium text-amber-700">
+              NHIS number assigned after your centre visit is completed
+            </span>
+          )}
         </p>
       </div>
 

@@ -108,8 +108,8 @@ export function AppHeader() {
                 <p className="text-xs font-medium text-foreground leading-none">
                   {user.fullName.split(" ")[0]}
                 </p>
-                <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
-                  {user.nhisNumber}
+                <p className="text-[10px] text-muted-foreground leading-none mt-0.5 truncate max-w-[100px]">
+                  {user.email}
                 </p>
               </div>
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">

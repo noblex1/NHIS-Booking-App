@@ -28,7 +28,10 @@ It mirrors government service portals such as [Ghana Passport Application](https
 ## Technical notes
 
 - Appointment records include `serviceType`: `new_registration` | `renewal`.
-- Admin **Availability** controls which calendar dates are open or closed for bookings.
-- OTP + account registration are the digital front door; the in-person step happens at the booked slot.
+- `applicationStatus`: `submitted` → `at_centre` → `completed` (NHIS number assigned on completed).
+- `referenceNumber` generated on booking; optional `feePaymentReference` when fees apply.
+- `centreId` links to **ServiceCentre**; document checklist acknowledged before submit.
+- Auth is **email + password only** (no DOB/NHIS at signup). NHIS number assigned after centre completion.
+- Admin **Availability** controls bookable dates; **Service centres** managed under admin.
 
 When adding features, ask: “Does this match passport-style **service booking + application tracking**, not hospital scheduling?”
