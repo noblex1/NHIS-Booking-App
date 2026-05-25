@@ -68,6 +68,7 @@ async function fetchApi<T>(
 // ============================================================================
 
 export interface RegisterRequest {
+  fullName: string;
   email: string;
   password: string;
 }
@@ -203,6 +204,7 @@ export const authApi = {
 // ============================================================================
 
 export type NhisServiceType = "new_registration" | "renewal";
+export type SlotPeriodId = "morning" | "afternoon" | "evening";
 
 export interface ServiceCentre {
   _id: string;
@@ -233,11 +235,21 @@ export interface Appointment {
   updatedAt: string;
 }
 
+export interface SlotPeriodAvailability {
+  id: string;
+  label: string;
+  hours: string;
+  maxSlots: number;
+  booked: number;
+  remaining: number;
+  available: boolean;
+}
+
 export interface GetAvailableSlotsResponse {
   success: boolean;
   date: string;
-  availableSlots: string[];
-  bookedSlots: string[];
+  centre?: ServiceCentre;
+  periods: SlotPeriodAvailability[];
   dateUnavailable?: boolean;
 }
 
@@ -250,9 +262,8 @@ export interface BookingScheduleResponse {
 
 export interface CreateAppointmentRequest {
   date: string;
-  timeSlot: string;
+  timeSlot: SlotPeriodId;
   serviceType: NhisServiceType;
-  centreId: string;
   documentsAcknowledged: string[];
   feePaymentReference?: string;
 }
@@ -283,9 +294,8 @@ export const appointmentsApi = {
   /**
    * Get available time slots for a specific date
    */
-  async getAvailableSlots(date: string, centreId: string): Promise<GetAvailableSlotsResponse> {
-    const query = new URLSearchParams({ date, centreId });
-    return fetchApi<GetAvailableSlotsResponse>(`/api/appointments/available?${query}`);
+  async getAvailableSlots(date: string): Promise<GetAvailableSlotsResponse> {
+    return fetchApi<GetAvailableSlotsResponse>(`/api/appointments/available?date=${date}`);
   },
 
   /**

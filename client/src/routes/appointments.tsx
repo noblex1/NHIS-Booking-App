@@ -2,7 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { authStore, useAuthStore } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
-import { CalendarPlus, CalendarX, Calendar, Clock, Loader2 } from "lucide-react";
+import { CalendarPlus, CalendarX, Calendar, Clock, Loader2, Download } from "lucide-react";
+import type { Appointment } from "@/lib/api-client";
+import { downloadAppointmentPdf } from "@/lib/appointment-pdf";
+import { getSlotPeriodLabel } from "@/lib/slot-periods";
+import { DEFAULT_CENTRE_NAME } from "@/lib/centre";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -26,6 +30,7 @@ function AppointmentsPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [rawAppointments, setRawAppointments] = useState<Appointment[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -37,6 +42,7 @@ function AppointmentsPage() {
     const fetchAppointments = async () => {
       try {
         const response = await appointmentsApi.getMyAppointments();
+        setRawAppointments(response.appointments);
         authStore.setAppointments(response.appointments);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -88,7 +94,7 @@ function AppointmentsPage() {
             <p className="text-sm font-medium text-primary">History</p>
             <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">My centre bookings</h1>
             <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-              Registration and renewal visits at NHIA service centres.
+              {DEFAULT_CENTRE_NAME}
             </p>
           </div>
           <Link to="/book" className="w-full sm:w-auto">
@@ -114,7 +120,9 @@ function AppointmentsPage() {
           </div>
         )}
 
-        {sorted.map((a) => (
+        {sorted.map((a) => {
+          const raw = rawAppointments.find((r) => r._id === a.id);
+          return (
           <div
             key={a.id}
             className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] transition-all hover:-translate-y-0.5 sm:p-5"
@@ -134,15 +142,15 @@ function AppointmentsPage() {
                   {a.referenceNumber && (
                     <p className="mt-0.5 font-mono text-xs text-primary">{a.referenceNumber}</p>
                   )}
-                  {a.centreName && (
-                    <p className="text-xs text-muted-foreground">{a.centreName}</p>
-                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {a.centreName || DEFAULT_CENTRE_NAME}
+                  </p>
                   <div className="text-sm text-muted-foreground">
                     {format(new Date(a.date), "EEEE, MMMM d, yyyy")}
                   </div>
                   <div className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" />
-                    {a.time}
+                    {getSlotPeriodLabel(a.time)}
                   </div>
                   {a.applicationStatus && a.applicationStatus !== "cancelled" && (
                     <div className="mt-3">
@@ -178,7 +186,8 @@ function AppointmentsPage() {
               </div>
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
     </div>
   );

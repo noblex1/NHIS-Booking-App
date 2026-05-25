@@ -1,6 +1,7 @@
 const { body, query } = require("express-validator");
 
 const registerValidator = [
+  body("fullName").trim().isLength({ min: 2, max: 100 }).withMessage("Full name is required"),
   body("email").trim().isEmail().normalizeEmail().withMessage("Valid email is required"),
   body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
 ];
@@ -25,8 +26,9 @@ const resendOtpValidator = [
 
 const createAppointmentValidator = [
   body("date").isISO8601().withMessage("date must be a valid date (YYYY-MM-DD)"),
-  body("timeSlot").trim().notEmpty().withMessage("timeSlot is required"),
-  body("centreId").isMongoId().withMessage("centreId must be valid"),
+  body("timeSlot")
+    .isIn(["morning", "afternoon", "evening"])
+    .withMessage("timeSlot must be morning, afternoon, or evening"),
   body("serviceType")
     .isIn(["new_registration", "renewal"])
     .withMessage("serviceType must be new_registration or renewal"),
@@ -41,7 +43,6 @@ const scheduleRangeValidator = [
 
 const availableSlotsValidator = [
   query("date").isISO8601().withMessage("date query param must be YYYY-MM-DD"),
-  query("centreId").isMongoId().withMessage("centreId is required"),
 ];
 
 module.exports = {

@@ -18,8 +18,8 @@ const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Centre bookings", href: "/admin/appointments", icon: Calendar },
-  { name: "Service centres", href: "/admin/centres", icon: MapPin },
-  { name: "Availability", href: "/admin/availability", icon: CalendarDays },
+  { name: "Centre", href: "/admin/centres", icon: MapPin },
+  { name: "Slots & calendar", href: "/admin/availability", icon: CalendarDays },
   { name: "NHIS Officials", href: "/admin/officials", icon: UserCog },
 ];
 

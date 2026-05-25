@@ -16,6 +16,10 @@ const {
   deleteScheduleRule,
 } = require("../controllers/admin.schedule.controller");
 const {
+  getSlotCapacity,
+  updateSlotCapacity,
+} = require("../controllers/admin.slotCapacity.controller");
+const {
   getAllAppointments,
   getAppointmentById,
   updateAppointmentStatus,
@@ -255,6 +259,26 @@ router.delete(
   adminAuth,
   [param("date").matches(/^\d{4}-\d{2}-\d{2}$/).withMessage("date must be YYYY-MM-DD"), validate],
   deleteScheduleRule,
+);
+
+router.get(
+  "/slot-capacity",
+  adminAuth,
+  [query("date").matches(/^\d{4}-\d{2}-\d{2}$/).withMessage("date must be YYYY-MM-DD"), validate],
+  getSlotCapacity,
+);
+
+router.put(
+  "/slot-capacity",
+  adminAuth,
+  [
+    body("date").isISO8601(),
+    body("capacities").isArray({ min: 1 }),
+    body("capacities.*.period").isIn(["morning", "afternoon", "evening"]),
+    body("capacities.*.maxSlots").isInt({ min: 0 }),
+    validate,
+  ],
+  updateSlotCapacity,
 );
 
 // ============================================================================

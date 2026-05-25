@@ -512,6 +512,35 @@ export const adminCentresApi = {
   },
 };
 
+export interface SlotCapacityRow {
+  period: string;
+  label: string;
+  hours: string;
+  maxSlots: number;
+  booked: number;
+  remaining: number;
+}
+
+export const adminSlotCapacityApi = {
+  async getForDate(date: string): Promise<{
+    success: boolean;
+    date: string;
+    capacities: SlotCapacityRow[];
+  }> {
+    return fetchAdminApi(`/api/admin/slot-capacity?date=${date}`);
+  },
+
+  async update(data: {
+    date: string;
+    capacities: Array<{ period: string; maxSlots: number }>;
+  }): Promise<{ success: boolean; capacities: SlotCapacityRow[] }> {
+    return fetchAdminApi("/api/admin/slot-capacity", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+};
+
 export const adminScheduleApi = {
   async getRange(from: string, to: string): Promise<BookingScheduleResponse> {
     const query = new URLSearchParams({ from, to });

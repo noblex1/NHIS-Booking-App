@@ -102,7 +102,14 @@ export function exportAppointmentsToCSV(appointments: any[]): void {
     nhisNumber: apt.userId?.nhisNumber || "N/A",
     serviceType: serviceLabels[apt.serviceType] || apt.serviceType || "N/A",
     date: new Date(apt.date).toLocaleDateString(),
-    timeSlot: apt.timeSlot,
+    timeSlot:
+      apt.timeSlot === "morning"
+        ? "Morning (8:00 AM – 11:00 AM)"
+        : apt.timeSlot === "afternoon"
+          ? "Afternoon (12:00 PM – 3:00 PM)"
+          : apt.timeSlot === "evening"
+            ? "Evening (4:00 PM – 6:00 PM)"
+            : apt.timeSlot,
     status: apt.status,
     bookedOn: new Date(apt.createdAt).toLocaleString(),
   }));
@@ -224,7 +231,14 @@ export function exportAppointmentsToExcel(appointments: any[]): void {
     "Patient Email": apt.userId?.email || "N/A",
     "NHIS Number": apt.userId?.nhisNumber || "N/A",
     Date: new Date(apt.date).toLocaleDateString(),
-    "Time Slot": apt.timeSlot,
+    "Time Slot":
+      apt.timeSlot === "morning"
+        ? "Morning (8:00 AM – 11:00 AM)"
+        : apt.timeSlot === "afternoon"
+          ? "Afternoon (12:00 PM – 3:00 PM)"
+          : apt.timeSlot === "evening"
+            ? "Evening (4:00 PM – 6:00 PM)"
+            : apt.timeSlot,
     Status: apt.status,
     "Booked On": new Date(apt.createdAt).toLocaleString(),
   }));

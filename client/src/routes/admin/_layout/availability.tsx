@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   adminScheduleApi,
+  adminSlotCapacityApi,
   AdminApiError,
   BookingScheduleRule,
+  SlotCapacityRow,
 } from "@/lib/admin-api-client";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
@@ -12,24 +14,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Loader2, CalendarOff, CalendarCheck, Trash2 } from "lucide-react";
+import { Loader2, CalendarOff, CalendarCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DEFAULT_CENTRE_NAME } from "@/lib/centre";
 
 export const Route = createFileRoute("/admin/_layout/availability")({
-  head: () => ({
-    meta: [
-      { title: "Booking Availability - NHIS Admin" },
-      { name: "description", content: "Manage bookable appointment dates" },
-    ],
-  }),
   component: AvailabilityPage,
 });
 
@@ -39,18 +28,15 @@ function AvailabilityPage() {
   const [rules, setRules] = useState<BookingScheduleRule[]>([]);
   const [blockedSet, setBlockedSet] = useState<Set<string>>(new Set());
   const [openSet, setOpenSet] = useState<Set<string>>(new Set());
+  const [capacities, setCapacities] = useState<SlotCapacityRow[]>([]);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const range = useMemo(() => {
-    const from = startOfMonth(month);
-    const to = endOfMonth(addMonths(month, 1));
-    return {
-      from: format(from, "yyyy-MM-dd"),
-      to: format(to, "yyyy-MM-dd"),
-    };
-  }, [month]);
+  const range = {
+    from: format(startOfMonth(month), "yyyy-MM-dd"),
+    to: format(endOfMonth(addMonths(month, 1)), "yyyy-MM-dd"),
+  };
 
   const loadSchedule = useCallback(async () => {
     setLoading(true);
@@ -59,79 +45,77 @@ function AvailabilityPage() {
       setRules(response.rules);
       setBlockedSet(new Set(response.blockedDates));
       setOpenSet(new Set(response.openDates));
-    } catch (error) {
-      if (error instanceof AdminApiError) {
-        toast.error("Failed to load schedule");
-      }
+    } catch {
+      toast.error("Failed to load calendar rules");
     } finally {
       setLoading(false);
     }
   }, [range.from, range.to]);
+
+  const loadCapacity = useCallback(async (dateKey: string) => {
+    try {
+      const res = await adminSlotCapacityApi.getForDate(dateKey);
+      setCapacities(res.capacities);
+    } catch {
+      toast.error("Failed to load slot capacity");
+    }
+  }, []);
 
   useEffect(() => {
     loadSchedule();
   }, [loadSchedule]);
 
   const selectedKey = selected ? format(selected, "yyyy-MM-dd") : null;
-  const selectedRule = selectedKey
-    ? rules.find((rule) => rule.date === selectedKey)
-    : undefined;
+
+  useEffect(() => {
+    if (selectedKey) {
+      loadCapacity(selectedKey);
+    } else {
+      setCapacities([]);
+    }
+  }, [selectedKey, loadCapacity]);
 
   const applyRule = async (type: "blocked" | "open") => {
-    if (!selectedKey) {
-      toast.error("Select a date on the calendar first");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await adminScheduleApi.setRule({
-        date: selectedKey,
-        type,
-        reason: reason.trim(),
-      });
-      toast.success(
-        type === "blocked"
-          ? "Date marked unavailable for booking"
-          : "Date marked open for booking",
-      );
-      await loadSchedule();
-    } catch (error) {
-      if (error instanceof AdminApiError) {
-        toast.error(error.message);
-      }
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const clearRule = async () => {
     if (!selectedKey) return;
-
     setSaving(true);
     try {
-      await adminScheduleApi.removeRule(selectedKey);
-      toast.success("Date reset to default rules");
-      setReason("");
+      await adminScheduleApi.setRule({ date: selectedKey, type, reason });
+      toast.success(type === "blocked" ? "Date blocked" : "Date opened");
       await loadSchedule();
-    } catch (error) {
-      if (error instanceof AdminApiError) {
-        toast.error(error.message);
-      }
+    } catch (e) {
+      if (e instanceof AdminApiError) toast.error(e.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const upcomingRules = [...rules].sort((a, b) => a.date.localeCompare(b.date));
+  const saveCapacities = async () => {
+    if (!selectedKey) return;
+    setSaving(true);
+    try {
+      const res = await adminSlotCapacityApi.update({
+        date: selectedKey,
+        capacities: capacities.map((c) => ({
+          period: c.period,
+          maxSlots: Number(c.maxSlots),
+        })),
+      });
+      setCapacities(res.capacities);
+      toast.success("Slot capacity saved");
+    } catch (e) {
+      if (e instanceof AdminApiError) toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Booking Availability</h1>
+        <h1 className="text-3xl font-bold">Availability & slots</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Block centre closure dates or open extra days (e.g. Sundays). Citizens only see
-          bookable dates when scheduling registration or renewal visits.
+          {DEFAULT_CENTRE_NAME} — block dates and set how many applicants per morning,
+          afternoon, or evening.
         </p>
       </div>
 
@@ -142,8 +126,8 @@ function AvailabilityPage() {
           </CardHeader>
           <CardContent className="relative">
             {loading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/60">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60">
+                <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             )}
             <Calendar
@@ -153,157 +137,102 @@ function AvailabilityPage() {
               month={month}
               onMonthChange={setMonth}
               modifiers={{
-                blocked: (date) => blockedSet.has(format(date, "yyyy-MM-dd")),
-                open: (date) => openSet.has(format(date, "yyyy-MM-dd")),
+                blocked: (d) => blockedSet.has(format(d, "yyyy-MM-dd")),
+                open: (d) => openSet.has(format(d, "yyyy-MM-dd")),
               }}
               modifiersClassNames={{
-                blocked: "bg-destructive/15 text-destructive font-semibold",
-                open: "bg-secondary/20 text-secondary font-semibold",
+                blocked: "bg-destructive/15 text-destructive",
+                open: "bg-secondary/20",
               }}
-              className="mx-auto"
             />
-            <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded bg-destructive/15" />
-                Unavailable (blocked)
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded bg-secondary/20" />
-                Open override
-              </span>
-            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">
-              {selectedKey ? format(new Date(selectedKey), "EEEE, MMM d, yyyy") : "Select a date"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {selectedKey ? (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Default: weekdays are bookable; Sundays are closed unless you mark a date as
-                  open.
-                </p>
-                {selectedRule && (
-                  <p className="text-sm">
-                    Current rule:{" "}
-                    <span
-                      className={cn(
-                        "font-medium",
-                        selectedRule.type === "blocked" ? "text-destructive" : "text-secondary",
-                      )}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                {selectedKey
+                  ? format(new Date(selectedKey), "EEEE, MMM d, yyyy")
+                  : "Select a date"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {selectedKey ? (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => applyRule("blocked")}
+                      disabled={saving}
                     >
-                      {selectedRule.type === "blocked" ? "Unavailable" : "Open"}
-                    </span>
-                    {selectedRule.reason ? ` — ${selectedRule.reason}` : ""}
-                  </p>
-                )}
-                <div className="space-y-2">
-                  <Label htmlFor="reason">Note (optional)</Label>
+                      <CalendarOff className="h-4 w-4" /> Block entire day
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => applyRule("open")}
+                      disabled={saving}
+                    >
+                      <CalendarCheck className="h-4 w-4" /> Open (e.g. Sunday)
+                    </Button>
+                  </div>
                   <Input
-                    id="reason"
-                    placeholder="e.g. Public holiday, special clinic day"
+                    placeholder="Note (optional)"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                   />
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="destructive"
-                    onClick={() => applyRule("blocked")}
-                    disabled={saving}
-                  >
-                    {saving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <CalendarOff className="h-4 w-4" />
-                    )}
-                    Mark unavailable
-                  </Button>
-                  <Button variant="secondary" onClick={() => applyRule("open")} disabled={saving}>
-                    {saving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <CalendarCheck className="h-4 w-4" />
-                    )}
-                    Mark open
-                  </Button>
-                  {selectedRule && (
-                    <Button variant="outline" onClick={clearRule} disabled={saving}>
-                      Reset to default
-                    </Button>
-                  )}
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Click a date to block it or open it for bookings.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Scheduled overrides</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {upcomingRules.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No custom rules in this range.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Note</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {upcomingRules.map((rule) => (
-                  <TableRow key={rule.date}>
-                    <TableCell>{format(new Date(rule.date), "MMM d, yyyy")}</TableCell>
-                    <TableCell>
-                      {rule.type === "blocked" ? (
-                        <span className="text-destructive">Unavailable</span>
-                      ) : (
-                        <span className="text-secondary">Open</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{rule.reason || "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive"
-                        onClick={async () => {
-                          try {
-                            await adminScheduleApi.removeRule(rule.date);
-                            toast.success("Rule removed");
-                            loadSchedule();
-                          } catch (error) {
-                            if (error instanceof AdminApiError) {
-                              toast.error(error.message);
-                            }
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                  <div className="border-t pt-4">
+                    <h3 className="mb-3 text-sm font-semibold">Slots per time period</h3>
+                    <div className="space-y-3">
+                      {capacities.map((row, idx) => (
+                        <div
+                          key={row.period}
+                          className="flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div>
+                            <p className="font-medium">{row.label}</p>
+                            <p className="text-xs text-muted-foreground">{row.hours}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {row.booked} already booked
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs whitespace-nowrap">Max slots</Label>
+                            <Input
+                              type="number"
+                              min={row.booked}
+                              className="w-24"
+                              value={row.maxSlots}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                setCapacities((prev) =>
+                                  prev.map((c, i) =>
+                                    i === idx ? { ...c, maxSlots: val } : c,
+                                  ),
+                                );
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Button className="mt-4" onClick={saveCapacities} disabled={saving}>
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save slot limits"}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Pick a date to manage blocked days and slot capacity.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

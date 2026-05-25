@@ -44,6 +44,7 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { getServiceTypeLabel } from "@/lib/nhis-services";
+import { getSlotPeriodLabel } from "@/lib/slot-periods";
 import { APPLICATION_STATUS_LABELS } from "@/lib/nhis-application";
 
 export const Route = createFileRoute("/admin/_layout/appointments")({
@@ -289,7 +290,7 @@ function AppointmentsManagementPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
-                        {apt.timeSlot}
+                        {getSlotPeriodLabel(apt.timeSlot)}
                       </div>
                     </TableCell>
                     <TableCell>

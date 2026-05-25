@@ -32,7 +32,7 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const register = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { fullName, email, password } = req.body;
   const cleanEmail = email.trim().toLowerCase();
 
   const existingVerified = await User.findOne({
@@ -47,6 +47,7 @@ const register = asyncHandler(async (req, res) => {
   await User.deleteOne({ email: cleanEmail, isVerified: false });
 
   await User.create({
+    fullName: fullName.trim(),
     email: cleanEmail,
     password,
     isVerified: false,

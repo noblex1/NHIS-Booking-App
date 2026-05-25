@@ -1,5 +1,5 @@
-const ServiceCentre = require("../models/ServiceCentre");
 const asyncHandler = require("../utils/asyncHandler");
+const { getDefaultCentre } = require("../services/centre.service");
 const {
   DOCUMENT_REQUIREMENTS,
   SERVICE_FEES,
@@ -7,11 +7,12 @@ const {
 } = require("../config/nhisApplication");
 
 const listActiveCentres = asyncHandler(async (_req, res) => {
-  const centres = await ServiceCentre.find({ isActive: true }).sort({ region: 1, city: 1, name: 1 });
+  const centre = await getDefaultCentre();
 
   res.status(200).json({
     success: true,
-    centres,
+    centres: [centre],
+    defaultCentre: centre,
   });
 });
 

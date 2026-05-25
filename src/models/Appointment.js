@@ -24,6 +24,7 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      index: true,
     },
     serviceType: {
       type: String,
@@ -70,16 +71,6 @@ const appointmentSchema = new mongoose.Schema(
     },
   },
   { timestamps: { createdAt: true, updatedAt: true } },
-);
-
-appointmentSchema.index(
-  { centreId: 1, date: 1, timeSlot: 1 },
-  {
-    unique: true,
-    partialFilterExpression: {
-      status: { $ne: APPOINTMENT_STATUS.CANCELLED },
-    },
-  },
 );
 
 module.exports = mongoose.model("Appointment", appointmentSchema);

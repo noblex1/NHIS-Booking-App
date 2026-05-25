@@ -28,7 +28,7 @@ type State = {
   user: User | null;
   token: string | null;
   appointments: Appointment[];
-  pendingRegistration: { email: string } | null;
+  pendingRegistration: { fullName: string; email: string } | null;
 };
 
 const STORAGE_KEY = "nhis_state_v2";
@@ -138,7 +138,7 @@ export const authStore = {
   /**
    * Start registration process (store data temporarily)
    */
-  startRegistration(data: { email: string }) {
+  startRegistration(data: { fullName: string; email: string }) {
     state = { ...state, pendingRegistration: data };
     persist();
   },

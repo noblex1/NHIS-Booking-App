@@ -12,7 +12,7 @@ export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
       { title: "Create Account - NHIS" },
-      { name: "description", content: "Create your NHIS account with email and password." },
+      { name: "description", content: "Create your NHIS account." },
     ],
   }),
   component: RegisterPage,
@@ -20,6 +20,7 @@ export const Route = createFileRoute("/register")({
 
 const schema = z
   .object({
+    fullName: z.string().trim().min(2, "Enter your full name").max(100),
     email: z.string().trim().email("Enter a valid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(6, "Please confirm your password"),
@@ -31,6 +32,7 @@ const schema = z
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -41,7 +43,7 @@ function RegisterPage() {
     e.preventDefault();
     setErrors({});
 
-    const parsed = schema.safeParse({ email, password, confirmPassword });
+    const parsed = schema.safeParse({ fullName, email, password, confirmPassword });
     if (!parsed.success) {
       const fe: Record<string, string> = {};
       parsed.error.issues.forEach((i) => (fe[i.path[0] as string] = i.message));
@@ -53,11 +55,15 @@ function RegisterPage() {
 
     try {
       const response = await authApi.register({
+        fullName: parsed.data.fullName,
         email: parsed.data.email,
         password: parsed.data.password,
       });
 
-      authStore.startRegistration({ email: parsed.data.email });
+      authStore.startRegistration({
+        fullName: parsed.data.fullName,
+        email: parsed.data.email,
+      });
 
       toast.success(response.message || "Verification code sent to your email");
       navigate({ to: "/verify" });
@@ -88,19 +94,30 @@ function RegisterPage() {
 
           <h1 className="mb-2 text-center text-2xl font-bold text-gray-800">Create account</h1>
           <p className="mb-6 text-center text-sm text-gray-600">
-            Email and password only — like a passport portal login.
+            Full name, email, and password — no NHIS number needed yet.
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4">
+            <div>
+              <Input
+                type="text"
+                placeholder="Full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="h-12 rounded-lg border-2 border-gray-300 px-4 text-base focus:border-[#4a7c7e] focus:ring-0"
+                disabled={loading}
+              />
+              {errors.fullName && <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>}
+            </div>
+
             <div>
               <Input
                 type="email"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 rounded-lg border-2 border-gray-300 px-4 text-base placeholder:text-gray-500 focus:border-[#4a7c7e] focus:ring-0"
+                className="h-12 rounded-lg border-2 border-gray-300 px-4 text-base focus:border-[#4a7c7e] focus:ring-0"
                 disabled={loading}
-                aria-invalid={!!errors.email}
               />
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
             </div>
@@ -111,9 +128,8 @@ function RegisterPage() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-lg border-2 border-gray-300 px-4 text-base placeholder:text-gray-500 focus:border-[#4a7c7e] focus:ring-0"
+                className="h-12 rounded-lg border-2 border-gray-300 px-4 text-base focus:border-[#4a7c7e] focus:ring-0"
                 disabled={loading}
-                aria-invalid={!!errors.password}
               />
               {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
             </div>
@@ -124,9 +140,8 @@ function RegisterPage() {
                 placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="h-12 rounded-lg border-2 border-gray-300 px-4 text-base placeholder:text-gray-500 focus:border-[#4a7c7e] focus:ring-0"
+                className="h-12 rounded-lg border-2 border-gray-300 px-4 text-base focus:border-[#4a7c7e] focus:ring-0"
                 disabled={loading}
-                aria-invalid={!!errors.confirmPassword}
               />
               {errors.confirmPassword && (
                 <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>
@@ -135,7 +150,7 @@ function RegisterPage() {
 
             <Button
               type="submit"
-              className="h-12 w-full rounded-full bg-[#1e4d7b] text-base font-semibold uppercase tracking-wide text-white shadow-lg transition-all hover:bg-[#163a5f] hover:shadow-xl disabled:opacity-50"
+              className="h-12 w-full rounded-full bg-[#1e4d7b] text-base font-semibold uppercase text-white"
               disabled={loading}
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Create account"}
