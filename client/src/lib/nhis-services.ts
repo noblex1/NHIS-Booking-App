@@ -9,7 +9,7 @@ export const NHIS_SERVICES: Record<
   new_registration: {
     label: "New NHIS registration",
     shortLabel: "New registration",
-    description: "First-time enrollment at an NHIA service centre",
+    description: "New enrollment at an NHIA service centre",
   },
   renewal: {
     label: "Card Misplacement or Card Update",
