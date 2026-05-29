@@ -262,10 +262,13 @@ async function sendAppointmentConfirmation(to, details) {
     referenceNumber,
     centreName,
     feeAmount = 0,
+    userName,
+    beneficiaryName,
   } = details;
   const { fromHeader } = resolveFromAddress();
   const serviceLabel = SERVICE_TYPE_LABELS[serviceType] || "NHIS service";
   const periodLabel = SLOT_PERIOD_LABELS[timeSlot] || timeSlot;
+  const applicantName = beneficiaryName || userName;
   const feeLine =
     feeAmount > 0
       ? `Fee: GHS ${feeAmount} (pay at centre or use your payment reference if provided).`
@@ -341,7 +344,7 @@ async function sendAppointmentConfirmation(to, details) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>✅ Centre visit confirmed</h1>
+            <h1>✅ Booking confirmed</h1>
           </div>
           
           <p>Your NHIA service centre booking is confirmed.</p>
@@ -350,6 +353,10 @@ async function sendAppointmentConfirmation(to, details) {
             <div class="detail-row">
               <span class="detail-label">Reference:</span>
               <span class="detail-value">${referenceNumber}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Applicant:</span>
+              <span class="detail-value">${applicantName}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Service:</span>

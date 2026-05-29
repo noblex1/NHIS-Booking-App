@@ -69,6 +69,10 @@ const appointmentSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    beneficiaryName: {
+      type: String,
+      trim: true,
+    },
     checkedInAt: {
       type: Date,
     },

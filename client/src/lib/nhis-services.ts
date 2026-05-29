@@ -12,9 +12,9 @@ export const NHIS_SERVICES: Record<
     description: "First-time enrollment at an NHIA service centre",
   },
   renewal: {
-    label: "NHIS renewal",
-    shortLabel: "Renewal",
-    description: "Renew your existing NHIS membership",
+    label: "Card Misplacement or Card Update",
+    shortLabel: "Card Update",
+    description: "Replace lost card or update your NHIS card information",
   },
 };
 

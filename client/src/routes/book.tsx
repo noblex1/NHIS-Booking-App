@@ -47,12 +47,14 @@ export const Route = createFileRoute("/book")({
   component: BookPage,
 });
 
-const STEPS = ["Service", "Documents", "Schedule", "Review"] as const;
+const STEPS = ["Booking For", "Service", "Documents", "Schedule", "Review"] as const;
 
 function BookPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [step, setStep] = useState(0);
+  const [bookingFor, setBookingFor] = useState<"myself" | "someone_else">("myself");
+  const [beneficiaryName, setBeneficiaryName] = useState("");
   const [serviceType, setServiceType] = useState<NhisServiceType>("renewal");
   const [docAck, setDocAck] = useState<Set<string>>(new Set());
   const [date, setDate] = useState<Date | undefined>();
@@ -104,9 +106,16 @@ function BookPage() {
   }, [date]);
 
   const canNext = () => {
-    if (step === 0) return true;
-    if (step === 1) return allRequiredAcked;
-    if (step === 2) return !!date && !!slot;
+    if (step === 0) {
+      // Booking for step - require beneficiary name if booking for someone else
+      if (bookingFor === "someone_else" && !beneficiaryName.trim()) {
+        return false;
+      }
+      return true;
+    }
+    if (step === 1) return true; // Service selection
+    if (step === 2) return allRequiredAcked; // Documents
+    if (step === 3) return !!date && !!slot; // Schedule
     return true;
   };
 
@@ -120,6 +129,7 @@ function BookPage() {
         serviceType,
         documentsAcknowledged: [...docAck],
         feePaymentReference: feePaymentReference.trim() || undefined,
+        beneficiaryName: bookingFor === "someone_else" ? beneficiaryName.trim() : undefined,
       });
       authStore.addAppointment(response.appointment);
       setLastReference(response.appointment.referenceNumber);
@@ -153,6 +163,58 @@ function BookPage() {
 
       <div className="mt-8 rounded-2xl border border-border bg-card p-5 sm:p-8">
         {step === 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold">Who are you booking for?</h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setBookingFor("myself");
+                  setBeneficiaryName("");
+                }}
+                className={cn(
+                  "rounded-2xl border p-4 text-left",
+                  bookingFor === "myself" ? "border-primary bg-primary/5" : "border-border",
+                )}
+              >
+                <p className="font-semibold">For myself</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Book using your registered name
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBookingFor("someone_else")}
+                className={cn(
+                  "rounded-2xl border p-4 text-left",
+                  bookingFor === "someone_else" ? "border-primary bg-primary/5" : "border-border",
+                )}
+              >
+                <p className="font-semibold">On behalf of someone</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Book for a family member or dependent
+                </p>
+              </button>
+            </div>
+            {bookingFor === "someone_else" && (
+              <div className="mt-4">
+                <Label htmlFor="beneficiaryName">Beneficiary's full name *</Label>
+                <Input
+                  id="beneficiaryName"
+                  className="mt-2"
+                  placeholder="Enter the person's full name"
+                  value={beneficiaryName}
+                  onChange={(e) => setBeneficiaryName(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  This name will appear on the appointment confirmation and PDF
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {step === 1 && (
           <div className="grid gap-3 sm:grid-cols-2">
             {(Object.keys(NHIS_SERVICES) as NhisServiceType[]).map((key) => {
               const service = NHIS_SERVICES[key];
@@ -179,7 +241,7 @@ function BookPage() {
           </div>
         )}
 
-        {step === 1 && (
+        {step === 2 && (
           <div className="space-y-3">
             {documents.map((doc) => (
               <label
@@ -206,7 +268,7 @@ function BookPage() {
           </div>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <div className="grid gap-6 lg:grid-cols-[auto_1fr]">
             <div>
               <h2 className="mb-2 text-sm font-semibold">Visit date</h2>
@@ -265,8 +327,9 @@ function BookPage() {
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div className="space-y-3 text-sm">
+            <Row label="Booking for" value={bookingFor === "myself" ? user.fullName : beneficiaryName} />
             <Row label="Centre" value={DEFAULT_CENTRE_NAME} />
             <Row label="Service" value={NHIS_SERVICES[serviceType].label} />
             <Row label="Date" value={date ? format(date, "PPP") : "—"} />

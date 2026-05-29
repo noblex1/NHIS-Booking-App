@@ -265,7 +265,7 @@ export function downloadAppointmentPdf(
   layout.y += refH + 8;
 
   layout.section("Applicant details");
-  layout.field("Full name", user.fullName, true);
+  layout.field("Full name", appointment.beneficiaryName || user.fullName, true);
   layout.field("Email address", user.email);
   layout.field(
     "NHIS membership number",

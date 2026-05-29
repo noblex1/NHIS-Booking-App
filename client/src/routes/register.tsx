@@ -4,7 +4,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { authStore } from "@/lib/auth-store";
 import { authApi, ApiError } from "@/lib/api-client";
 
@@ -36,6 +36,8 @@ function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -122,27 +124,41 @@ function RegisterPage() {
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
             </div>
 
-            <div>
+            <div className="relative">
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 rounded-lg border-2 border-gray-300 px-4 text-base focus:border-[#4a7c7e] focus:ring-0"
+                className="h-12 rounded-lg border-2 border-gray-300 px-4 pr-12 text-base focus:border-[#4a7c7e] focus:ring-0"
                 disabled={loading}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
               {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
             </div>
 
-            <div>
+            <div className="relative">
               <Input
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="h-12 rounded-lg border-2 border-gray-300 px-4 text-base focus:border-[#4a7c7e] focus:ring-0"
+                className="h-12 rounded-lg border-2 border-gray-300 px-4 pr-12 text-base focus:border-[#4a7c7e] focus:ring-0"
                 disabled={loading}
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
               {errors.confirmPassword && (
                 <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>
               )}

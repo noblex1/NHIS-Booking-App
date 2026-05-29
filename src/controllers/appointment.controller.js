@@ -40,6 +40,7 @@ const createAppointment = asyncHandler(async (req, res) => {
     serviceType,
     documentsAcknowledged,
     feePaymentReference,
+    beneficiaryName,
   } = req.body;
 
   const normalizedDate = normalizeDateOnly(date);
@@ -91,6 +92,7 @@ const createAppointment = asyncHandler(async (req, res) => {
     feePaid: feeAmount === 0,
     feePaymentReference: (feePaymentReference || "").trim(),
     documentsAcknowledged: documentsAcknowledged || [],
+    beneficiaryName: beneficiaryName ? beneficiaryName.trim() : undefined,
   });
 
   await appointment.populate("centreId", "name address city region code");
@@ -102,6 +104,8 @@ const createAppointment = asyncHandler(async (req, res) => {
     referenceNumber,
     centreName: centre.name,
     feeAmount,
+    userName: req.user.fullName,
+    beneficiaryName: beneficiaryName ? beneficiaryName.trim() : undefined,
   });
 
   res.status(201).json({

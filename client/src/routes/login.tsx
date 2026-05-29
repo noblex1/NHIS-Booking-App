@@ -4,7 +4,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { authStore, useAuthStore } from "@/lib/auth-store";
 import { authApi, ApiError } from "@/lib/api-client";
 
@@ -28,6 +28,7 @@ function LoginPage() {
   const { user } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
 
@@ -116,16 +117,23 @@ function LoginPage() {
               {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
             </div>
 
-            <div>
+            <div className="relative">
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-14 rounded-lg border-2 border-gray-300 px-4 text-base placeholder:text-gray-500 focus:border-[#4a7c7e] focus:ring-0"
+                className="h-14 rounded-lg border-2 border-gray-300 px-4 pr-12 text-base placeholder:text-gray-500 focus:border-[#4a7c7e] focus:ring-0"
                 disabled={loading}
                 aria-invalid={!!errors.password}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
               {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
             </div>
 

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Loader2 } from "lucide-react";
+import { Shield, Loader2, Eye, EyeOff } from "lucide-react";
 import { adminAuthApi, AdminApiError } from "@/lib/admin-api-client";
 import { adminStore } from "@/lib/admin-store";
 import { toast } from "sonner";
@@ -32,6 +32,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 function AdminLoginPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -87,13 +88,23 @@ function AdminLoginPage() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...register("password")}
-                disabled={loading}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  {...register("password")}
+                  disabled={loading}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
