@@ -16,6 +16,8 @@ import {
   ChevronRight,
   CheckCircle,
   XCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,6 +89,7 @@ function OfficialsManagementPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -439,13 +442,23 @@ function OfficialsManagementPage() {
                 <Label htmlFor="password">
                   {editingOfficial ? "New password (optional)" : "Login password"}
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder={editingOfficial ? "Leave blank to keep current" : "Min. 6 characters"}
-                  {...register("password")}
-                  disabled={submitting}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={editingOfficial ? "Leave blank to keep current" : "Min. 6 characters"}
+                    {...register("password")}
+                    disabled={submitting}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 
