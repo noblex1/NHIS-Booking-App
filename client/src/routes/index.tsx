@@ -137,7 +137,7 @@ function LandingPage() {
               <div className="mt-6 space-y-2">
                 {[
                   { icon: FilePlus2, label: "New registration", hint: "First-time members" },
-                  { icon: RefreshCw, label: "Card Update", hint: "Replace or update card" },
+                  { icon: RefreshCw, label: "Card Misplacement or Update", hint: "Replace or update card" },
                 ].map(({ icon: Icon, label, hint }) => (
                   <div
                     key={label}
