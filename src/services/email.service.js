@@ -261,7 +261,6 @@ async function sendAppointmentConfirmation(to, details) {
     serviceType = "renewal",
     referenceNumber,
     centreName,
-    feeAmount = 0,
     userName,
     beneficiaryName,
   } = details;
@@ -269,16 +268,12 @@ async function sendAppointmentConfirmation(to, details) {
   const serviceLabel = SERVICE_TYPE_LABELS[serviceType] || "NHIS service";
   const periodLabel = SLOT_PERIOD_LABELS[timeSlot] || timeSlot;
   const applicantName = beneficiaryName || userName;
-  const feeLine =
-    feeAmount > 0
-      ? `Fee: GHS ${feeAmount} (pay at centre or use your payment reference if provided).`
-      : "No online fee for this service.";
 
   const mailOptions = {
     from: fromHeader,
     to,
     subject: `NHIS application confirmed — ${referenceNumber}`,
-    text: `Reference: ${referenceNumber}\nService: ${serviceLabel}\nCentre: ${centreName}\nDate: ${date}\nTime: ${periodLabel}\n${feeLine}\n\nBring required documents and arrive 10 minutes early.`,
+    text: `Reference: ${referenceNumber}\nService: ${serviceLabel}\nCentre: ${centreName}\nDate: ${date}\nTime: ${periodLabel}\n\nBring required documents and arrive 10 minutes early.`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -373,10 +368,6 @@ async function sendAppointmentConfirmation(to, details) {
             <div class="detail-row">
               <span class="detail-label">🕐 Time:</span>
               <span class="detail-value">${periodLabel}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Fee:</span>
-              <span class="detail-value">${feeAmount > 0 ? `GHS ${feeAmount}` : "None"}</span>
             </div>
           </div>
           

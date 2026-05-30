@@ -240,7 +240,7 @@ export function downloadAppointmentPdf(
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.text("National Health Insurance Scheme", MARGIN + 26, 22);
-  doc.text("Techiman Municipal · Registration & Renewal", MARGIN + 26, 28);
+  doc.text("Techiman Municipal · Registration & Card Misplacement or Update", MARGIN + 26, 28);
 
   layout.y = headerH + 8;
 
@@ -260,7 +260,8 @@ export function downloadAppointmentPdf(
   ink(doc, T.foreground);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text(appointment.referenceNumber || "—", MARGIN + 7, layout.y + 15);
+  const displayReference = appointment.referenceNumber || appointment._id || "N/A";
+  doc.text(displayReference, MARGIN + 7, layout.y + 15);
 
   layout.y += refH + 8;
 

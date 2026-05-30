@@ -76,12 +76,20 @@ function AppointmentsPage() {
   const handleDownloadPdf = async (apt: Appointment) => {
     setDownloadingId(apt._id);
     try {
+      // Debug: Log appointment data
+      console.log('Downloading PDF for appointment:', {
+        _id: apt._id,
+        referenceNumber: apt.referenceNumber,
+        hasReferenceNumber: !!apt.referenceNumber
+      });
+      
       downloadAppointmentPdf(apt, {
         fullName: user.fullName,
         email: user.email,
       });
       toast.success("PDF downloaded");
-    } catch {
+    } catch (error) {
+      console.error('PDF download error:', error);
       toast.error("Could not generate PDF. Please try again.");
     } finally {
       setDownloadingId(null);
@@ -171,11 +179,9 @@ function AppointmentsPage() {
                   <div className="text-sm font-semibold text-foreground sm:text-base">
                     {getServiceTypeLabel(apt.serviceType)}
                   </div>
-                  {apt.referenceNumber && (
-                    <p className="mt-0.5 font-mono text-xs text-primary">
-                      {apt.referenceNumber}
-                    </p>
-                  )}
+                  <p className="mt-0.5 font-mono text-xs text-primary">
+                    {apt.referenceNumber || `ID: ${apt._id.slice(-8)}`}
+                  </p>
                   <p className="text-xs text-muted-foreground">{centreName(apt)}</p>
                   <div className="text-sm text-muted-foreground">
                     {format(new Date(apt.date), "EEEE, MMMM d, yyyy")}
