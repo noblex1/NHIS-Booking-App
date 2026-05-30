@@ -1,12 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useAuthStore, authStore } from "@/lib/auth-store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
   User, 
   Mail, 
-  Calendar, 
   Shield, 
   LogOut, 
   ChevronRight,
@@ -102,13 +101,13 @@ function ProfilePage() {
               icon={Lock}
               label="Change Password"
               description="Update your password"
-              onClick={() => toast.info("Password change coming soon")}
+              to="/profile/change-password"
             />
             <SettingsItem
               icon={Bell}
               label="Notifications"
               description="Manage notification preferences"
-              onClick={() => toast.info("Notification settings coming soon")}
+              to="/profile/notifications"
             />
           </div>
         </Card>
@@ -123,13 +122,13 @@ function ProfilePage() {
               icon={HelpCircle}
               label="Help Center"
               description="Get help and support"
-              onClick={() => toast.info("Help center coming soon")}
+              to="/profile/help"
             />
             <SettingsItem
               icon={FileText}
               label="Terms & Privacy"
               description="View our policies"
-              onClick={() => toast.info("Terms & Privacy coming soon")}
+              to="/profile/terms"
             />
           </div>
         </Card>
@@ -180,26 +179,25 @@ function SettingsItem({
   icon: Icon,
   label,
   description,
-  onClick,
+  to,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   description: string;
-  onClick: () => void;
+  to: string;
 }) {
   return (
-    <button
-      onClick={onClick}
-      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 active:bg-muted"
-    >
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-        <Icon className="h-5 w-5" />
+    <Link to={to} className="block">
+      <div className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 active:bg-muted">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground">{label}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+        </div>
+        <ChevronRight className="h-5 w-5 text-muted-foreground" />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground">{label}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-      </div>
-      <ChevronRight className="h-5 w-5 text-muted-foreground" />
-    </button>
+    </Link>
   );
 }

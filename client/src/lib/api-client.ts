@@ -197,6 +197,35 @@ export const authApi = {
   isAuthenticated(): boolean {
     return !!this.getToken();
   },
+
+  /**
+   * Request OTP for password change
+   */
+  async requestPasswordChangeOTP(): Promise<{ success: boolean; message: string }> {
+    return fetchApi("/api/auth/request-password-change-otp", {
+      method: "POST",
+    });
+  },
+
+  /**
+   * Verify OTP for password change
+   */
+  async verifyPasswordChangeOTP(otp: string): Promise<{ success: boolean; message: string }> {
+    return fetchApi("/api/auth/verify-password-change-otp", {
+      method: "POST",
+      body: JSON.stringify({ otp }),
+    });
+  },
+
+  /**
+   * Change password with verified OTP
+   */
+  async changePassword(otp: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    return fetchApi("/api/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ otp, newPassword }),
+    });
+  },
 };
 
 // ============================================================================

@@ -17,6 +17,10 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BookRouteImport } from './routes/book'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileTermsRouteImport } from './routes/profile/terms'
+import { Route as ProfileNotificationsRouteImport } from './routes/profile/notifications'
+import { Route as ProfileHelpRouteImport } from './routes/profile/help'
+import { Route as ProfileChangePasswordRouteImport } from './routes/profile/change-password'
 import { Route as OfficialLoginRouteImport } from './routes/official/login'
 import { Route as OfficialLayoutRouteImport } from './routes/official/_layout'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
@@ -71,6 +75,26 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileTermsRoute = ProfileTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileNotificationsRoute = ProfileNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileHelpRoute = ProfileHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => ProfileRoute,
+} as any)
+const ProfileChangePasswordRoute = ProfileChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const OfficialLoginRoute = OfficialLoginRouteImport.update({
   id: '/official/login',
@@ -149,13 +173,17 @@ export interface FileRoutesByFullPath {
   '/book': typeof BookRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
   '/admin': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/official': typeof OfficialLayoutRouteWithChildren
   '/official/login': typeof OfficialLoginRoute
+  '/profile/change-password': typeof ProfileChangePasswordRoute
+  '/profile/help': typeof ProfileHelpRoute
+  '/profile/notifications': typeof ProfileNotificationsRoute
+  '/profile/terms': typeof ProfileTermsRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/centres': typeof AdminLayoutCentresRoute
@@ -173,12 +201,16 @@ export interface FileRoutesByTo {
   '/book': typeof BookRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
   '/admin': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/official/login': typeof OfficialLoginRoute
+  '/profile/change-password': typeof ProfileChangePasswordRoute
+  '/profile/help': typeof ProfileHelpRoute
+  '/profile/notifications': typeof ProfileNotificationsRoute
+  '/profile/terms': typeof ProfileTermsRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/centres': typeof AdminLayoutCentresRoute
@@ -197,13 +229,17 @@ export interface FileRoutesById {
   '/book': typeof BookRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
   '/admin/_layout': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/official/_layout': typeof OfficialLayoutRouteWithChildren
   '/official/login': typeof OfficialLoginRoute
+  '/profile/change-password': typeof ProfileChangePasswordRoute
+  '/profile/help': typeof ProfileHelpRoute
+  '/profile/notifications': typeof ProfileNotificationsRoute
+  '/profile/terms': typeof ProfileTermsRoute
   '/admin/_layout/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/_layout/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/_layout/centres': typeof AdminLayoutCentresRoute
@@ -230,6 +266,10 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/official'
     | '/official/login'
+    | '/profile/change-password'
+    | '/profile/help'
+    | '/profile/notifications'
+    | '/profile/terms'
     | '/admin/appointments'
     | '/admin/availability'
     | '/admin/centres'
@@ -253,6 +293,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/login'
     | '/official/login'
+    | '/profile/change-password'
+    | '/profile/help'
+    | '/profile/notifications'
+    | '/profile/terms'
     | '/admin/appointments'
     | '/admin/availability'
     | '/admin/centres'
@@ -277,6 +321,10 @@ export interface FileRouteTypes {
     | '/admin/login'
     | '/official/_layout'
     | '/official/login'
+    | '/profile/change-password'
+    | '/profile/help'
+    | '/profile/notifications'
+    | '/profile/terms'
     | '/admin/_layout/appointments'
     | '/admin/_layout/availability'
     | '/admin/_layout/centres'
@@ -295,7 +343,7 @@ export interface RootRouteChildren {
   BookRoute: typeof BookRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
-  ProfileRoute: typeof ProfileRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   VerifyRoute: typeof VerifyRoute
   AdminLayoutRoute: typeof AdminLayoutRouteWithChildren
@@ -361,6 +409,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/profile/terms': {
+      id: '/profile/terms'
+      path: '/terms'
+      fullPath: '/profile/terms'
+      preLoaderRoute: typeof ProfileTermsRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/notifications': {
+      id: '/profile/notifications'
+      path: '/notifications'
+      fullPath: '/profile/notifications'
+      preLoaderRoute: typeof ProfileNotificationsRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/help': {
+      id: '/profile/help'
+      path: '/help'
+      fullPath: '/profile/help'
+      preLoaderRoute: typeof ProfileHelpRouteImport
+      parentRoute: typeof ProfileRoute
+    }
+    '/profile/change-password': {
+      id: '/profile/change-password'
+      path: '/change-password'
+      fullPath: '/profile/change-password'
+      preLoaderRoute: typeof ProfileChangePasswordRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/official/login': {
       id: '/official/login'
@@ -463,6 +539,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ProfileRouteChildren {
+  ProfileChangePasswordRoute: typeof ProfileChangePasswordRoute
+  ProfileHelpRoute: typeof ProfileHelpRoute
+  ProfileNotificationsRoute: typeof ProfileNotificationsRoute
+  ProfileTermsRoute: typeof ProfileTermsRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileChangePasswordRoute: ProfileChangePasswordRoute,
+  ProfileHelpRoute: ProfileHelpRoute,
+  ProfileNotificationsRoute: ProfileNotificationsRoute,
+  ProfileTermsRoute: ProfileTermsRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
+
 interface AdminLayoutUsersRouteChildren {
   AdminLayoutUsersUserIdRoute: typeof AdminLayoutUsersUserIdRoute
 }
@@ -518,7 +611,7 @@ const rootRouteChildren: RootRouteChildren = {
   BookRoute: BookRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
-  ProfileRoute: ProfileRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   RegisterRoute: RegisterRoute,
   VerifyRoute: VerifyRoute,
   AdminLayoutRoute: AdminLayoutRouteWithChildren,

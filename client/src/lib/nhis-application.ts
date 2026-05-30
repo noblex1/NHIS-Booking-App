@@ -28,7 +28,7 @@ export const DOCUMENT_REQUIREMENTS: Record<NhisServiceType, DocumentRequirement[
     { id: "residence_proof", label: "Proof of residence", required: true },
   ],
   renewal: [
-    { id: "ghana_card", label: "Valid Ghana Card (original)", required: false },
+    { id: "ghana_card", label: "Valid Ghana Card (original)", required: true },
     { id: "nhis_card", label: "Existing NHIS card or membership details", required: false },
   ],
 };
