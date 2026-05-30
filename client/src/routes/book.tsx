@@ -287,7 +287,9 @@ function BookPage() {
                   if (d < today) return true;
                   const key = format(d, "yyyy-MM-dd");
                   if (blockedDates.has(key)) return true;
-                  if (d.getDay() === 0 && !openDates.has(key)) return true;
+                  // Disable weekends (Saturday=6, Sunday=0) unless explicitly opened
+                  const dayOfWeek = d.getDay();
+                  if ((dayOfWeek === 0 || dayOfWeek === 6) && !openDates.has(key)) return true;
                   return false;
                 }}
               />
