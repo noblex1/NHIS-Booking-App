@@ -36,6 +36,7 @@ import {
 import { NHIS_SERVICES } from "@/lib/nhis-services";
 import { DOCUMENT_REQUIREMENTS, SERVICE_FEES } from "@/lib/nhis-application";
 import { DEFAULT_CENTRE_NAME } from "@/lib/centre";
+import { isGhanaPublicHoliday, getHolidayInfo } from "@/lib/ghana-holidays";
 
 export const Route = createFileRoute("/book")({
   head: () => ({
@@ -290,6 +291,8 @@ function BookPage() {
                   // Disable weekends (Saturday=6, Sunday=0) unless explicitly opened
                   const dayOfWeek = d.getDay();
                   if ((dayOfWeek === 0 || dayOfWeek === 6) && !openDates.has(key)) return true;
+                  // Disable Ghana public holidays unless explicitly opened
+                  if (isGhanaPublicHoliday(d) && !openDates.has(key)) return true;
                   return false;
                 }}
               />

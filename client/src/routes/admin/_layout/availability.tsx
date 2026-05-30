@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CalendarOff, CalendarCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_CENTRE_NAME } from "@/lib/centre";
+import { isGhanaPublicHoliday, getHolidayInfo } from "@/lib/ghana-holidays";
 
 export const Route = createFileRoute("/admin/_layout/availability")({
   component: AvailabilityPage,
@@ -66,6 +67,7 @@ function AvailabilityPage() {
   }, [loadSchedule]);
 
   const selectedKey = selected ? format(selected, "yyyy-MM-dd") : null;
+  const selectedHoliday = selected ? getHolidayInfo(selected) : null;
 
   useEffect(() => {
     if (selectedKey) {
@@ -139,12 +141,29 @@ function AvailabilityPage() {
               modifiers={{
                 blocked: (d) => blockedSet.has(format(d, "yyyy-MM-dd")),
                 open: (d) => openSet.has(format(d, "yyyy-MM-dd")),
+                holiday: (d) => isGhanaPublicHoliday(d),
               }}
               modifiersClassNames={{
                 blocked: "bg-destructive/15 text-destructive",
                 open: "bg-secondary/20",
+                holiday: "bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-100",
               }}
             />
+            <div className="mt-4 space-y-2 text-xs">
+              <p className="font-semibold text-muted-foreground">Legend:</p>
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-destructive/15 border border-destructive/30"></div>
+                <span>Blocked by admin</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-amber-100 dark:bg-amber-950 border border-amber-200 dark:border-amber-800"></div>
+                <span>Ghana public holiday</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-secondary/20 border border-secondary/40"></div>
+                <span>Opened (override)</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -160,6 +179,21 @@ function AvailabilityPage() {
             <CardContent className="space-y-4">
               {selectedKey ? (
                 <>
+                  {selectedHoliday && (
+                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950">
+                      <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                        🇬🇭 {selectedHoliday.name}
+                      </p>
+                      {selectedHoliday.description && (
+                        <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
+                          {selectedHoliday.description}
+                        </p>
+                      )}
+                      <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                        Ghana Public Holiday - automatically unavailable unless opened
+                      </p>
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-2">
                     <Button
                       variant="destructive"
