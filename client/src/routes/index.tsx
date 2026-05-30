@@ -7,11 +7,11 @@ import { useAuthStore } from "@/lib/auth-store";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NHIS Registration & Renewal - Book your centre visit" },
+      { title: "NHIS Booking System - Skip the Queue" },
       {
         name: "description",
         content:
-          "Book NHIS registration or renewal at an NHIA service centre. Secure online account, OTP verification, and appointment scheduling.",
+          "Book your NHIA service centre visit online. Secure your appointment, choose your preferred time, and walk in with confidence. Fast, easy, and hassle-free.",
       },
     ],
   }),
@@ -55,14 +55,12 @@ function LandingPage() {
                 className="bg-clip-text text-transparent"
                 style={{ backgroundImage: "var(--gradient-hero)" }}
               >
-                registration & renewal
+                Booking System
               </span>
             </h1>
 
             <p className="mt-4 text-base text-muted-foreground sm:mt-5 sm:text-xl">
-              Book your visit to an NHIA service centre online — the same idea as passport
-              application booking: create an account, choose new registration or renewal, and
-              reserve your time slot.
+              Skip the queues and secure your spot at an NHIA service centre with ease. Create your account, select your preferred date and time, and walk in with confidence knowing your appointment is confirmed.
             </p>
 
             <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
@@ -114,7 +112,7 @@ function LandingPage() {
                     <RefreshCw className="h-6 w-6" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-foreground">NHIS renewal</div>
+                    <div className="text-sm font-semibold text-foreground">NHIS Registration & Card misplacement & Update</div>
                     <div className="text-xs text-muted-foreground">NHIA service centre</div>
                   </div>
                 </div>
