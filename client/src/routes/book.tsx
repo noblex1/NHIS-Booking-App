@@ -384,6 +384,9 @@ function BookPage() {
             <>
               <DialogHeader>
                 <DialogTitle>Confirm submission</DialogTitle>
+                <DialogDescription>
+                  Please confirm that you want to submit this appointment booking.
+                </DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowModal(false)}>

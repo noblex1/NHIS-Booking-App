@@ -266,7 +266,7 @@ export interface CreateAppointmentRequest {
   timeSlot: SlotPeriodId;
   serviceType: NhisServiceType;
   documentsAcknowledged: string[];
-  feePaymentReference?: string;
+  beneficiaryName?: string;
 }
 
 export interface CreateAppointmentResponse {
