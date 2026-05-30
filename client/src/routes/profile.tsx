@@ -86,11 +86,6 @@ function ProfilePage() {
         </div>
 
         <div className="divide-y divide-border">
-          <InfoRow
-            icon={Shield}
-            label="NHIS Number"
-            value={user.nhisNumber || "Assigned after centre visit is completed"}
-          />
           <InfoRow icon={Mail} label="Email Address" value={user.email} />
         </div>
       </Card>

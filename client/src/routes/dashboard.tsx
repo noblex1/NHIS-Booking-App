@@ -63,15 +63,7 @@ function DashboardPage() {
         <p className="text-sm font-medium text-primary">Dashboard</p>
         <h1 className="mt-1 text-2xl font-bold text-foreground sm:text-4xl">Welcome, {user.fullName}</h1>
         <p className="text-sm text-muted-foreground sm:text-base">
-          {user.nhisNumber ? (
-            <>
-              NHIS #: <span className="font-medium text-foreground">{user.nhisNumber}</span>
-            </>
-          ) : (
-            <span className="font-medium text-amber-700">
-              NHIS number assigned after your centre visit is completed
-            </span>
-          )}
+          Manage your NHIS appointments and bookings
         </p>
       </div>
 

@@ -107,7 +107,7 @@ function OfficialDashboardPage() {
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>• View everyone booked for today at your centre</p>
           <p>• Check in applicants when they arrive (reference number or queue)</p>
-          <p>• Mark applications complete and assign NHIS numbers when ready</p>
+          <p>• Mark applications as complete when processing is done</p>
           <p>• You cannot change system settings, other centres, or user accounts</p>
         </CardContent>
       </Card>

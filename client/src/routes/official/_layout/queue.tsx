@@ -125,11 +125,9 @@ function OfficialQueuePage() {
     try {
       await officialAppointmentsApi.updateApplication(completeTarget._id, {
         applicationStatus: "completed",
-        assignNhisNumber: nhisInput.trim() || undefined,
       });
       toast.success("Application marked completed");
       setCompleteTarget(null);
-      setNhisInput("");
       await load();
     } catch (e) {
       if (e instanceof OfficialApiError) toast.error(e.message);
@@ -246,9 +244,6 @@ function OfficialQueuePage() {
                   <TableCell>
                     <p className="font-medium">{apt.userId?.fullName}</p>
                     <p className="text-xs text-muted-foreground">{apt.userId?.email}</p>
-                    {apt.userId?.nhisNumber && (
-                      <p className="text-xs font-mono">{apt.userId.nhisNumber}</p>
-                    )}
                   </TableCell>
                   <TableCell className="text-sm">{getServiceTypeLabel(apt.serviceType)}</TableCell>
                   <TableCell className="text-sm">{getSlotPeriodLabel(apt.timeSlot)}</TableCell>
@@ -287,7 +282,6 @@ function OfficialQueuePage() {
                           disabled={actingId === apt._id}
                           onClick={() => {
                             setCompleteTarget(apt);
-                            setNhisInput(apt.userId?.nhisNumber || "");
                           }}
                         >
                           <CheckCircle2 className="h-3 w-3" />
@@ -319,18 +313,12 @@ function OfficialQueuePage() {
           <DialogHeader>
             <DialogTitle>Complete application</DialogTitle>
             <DialogDescription>
-              {completeTarget?.userId?.fullName} — leave NHIS number blank to auto-generate if
-              needed.
+              Mark {completeTarget?.userId?.fullName}'s application as completed.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-2">
-            <Label>NHIS number (optional)</Label>
-            <Input
-              value={nhisInput}
-              onChange={(e) => setNhisInput(e.target.value)}
-              placeholder="Auto-assign if empty"
-            />
-          </div>
+          <p className="text-sm text-muted-foreground">
+            This will update the application status to completed and notify the applicant.
+          </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCompleteTarget(null)}>
               Cancel

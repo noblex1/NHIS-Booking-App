@@ -226,7 +226,7 @@ function UsersManagementPage() {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search by name, email, or NHIS number..."
+              placeholder="Search by name or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -275,7 +275,6 @@ function UsersManagementPage() {
                   </TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>NHIS Number</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -293,7 +292,6 @@ function UsersManagementPage() {
                     </TableCell>
                     <TableCell className="font-medium">{user.fullName}</TableCell>
                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                    <TableCell className="font-mono text-sm">{user.nhisNumber}</TableCell>
                     <TableCell>
                       {user.isVerified ? (
                         <span className="inline-flex items-center gap-1 text-sm text-secondary">

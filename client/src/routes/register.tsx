@@ -96,7 +96,7 @@ function RegisterPage() {
 
           <h1 className="mb-2 text-center text-2xl font-bold text-gray-800">Create account</h1>
           <p className="mb-6 text-center text-sm text-gray-600">
-            Full name, email, and password — no NHIS number needed yet.
+            Enter your full name, email, and password to get started.
           </p>
 
           <form onSubmit={onSubmit} className="space-y-4">

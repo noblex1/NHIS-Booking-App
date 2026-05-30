@@ -190,7 +190,7 @@ class PdfLayout {
 
 export function downloadAppointmentPdf(
   appointment: PdfAppointment,
-  user: { fullName: string; email: string; nhisNumber?: string },
+  user: { fullName: string; email: string },
 ) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -267,10 +267,6 @@ export function downloadAppointmentPdf(
   layout.section("Applicant details");
   layout.field("Full name", appointment.beneficiaryName || user.fullName, true);
   layout.field("Email address", user.email);
-  layout.field(
-    "NHIS membership number",
-    user.nhisNumber || "To be assigned after your centre visit",
-  );
 
   layout.gap(2);
   layout.section("Visit schedule");
@@ -290,11 +286,6 @@ export function downloadAppointmentPdf(
   layout.section("Booking status");
   layout.field("Booking status", appointment.status, true);
   layout.field("Application status", appStatus);
-
-  if (appointment.feeAmount && appointment.feeAmount > 0) {
-    layout.field("Fee (GHS)", appointment.feeAmount.toFixed(2), true);
-    layout.field("Payment", appointment.feePaid ? "Paid" : "Unpaid", true);
-  }
 
   layout.gap(2);
   layout.noticeBox("Before you visit", [

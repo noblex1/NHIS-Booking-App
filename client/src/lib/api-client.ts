@@ -229,6 +229,7 @@ export interface Appointment {
   feeAmount: number;
   feePaid: boolean;
   feePaymentReference?: string;
+  beneficiaryName?: string;
   documentsAcknowledged?: string[];
   status: "Confirmed" | "Pending" | "Cancelled";
   createdAt: string;

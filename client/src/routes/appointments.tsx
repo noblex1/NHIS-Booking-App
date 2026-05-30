@@ -79,7 +79,6 @@ function AppointmentsPage() {
       downloadAppointmentPdf(apt, {
         fullName: user.fullName,
         email: user.email,
-        nhisNumber: user.nhisNumber,
       });
       toast.success("PDF downloaded");
     } catch {
@@ -191,11 +190,6 @@ function AppointmentsPage() {
                         status={apt.applicationStatus as ApplicationStatus}
                       />
                     </div>
-                  )}
-                  {typeof apt.feeAmount === "number" && apt.feeAmount > 0 && (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Fee: GHS {apt.feeAmount} {apt.feePaid ? "(paid)" : "(unpaid)"}
-                    </p>
                   )}
                 </div>
               </div>

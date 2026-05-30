@@ -322,16 +322,6 @@ function UserDetailPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="nhisNumber">NHIS Number</Label>
-                  <Input
-                    id="nhisNumber"
-                    value={user.nhisNumber || "Not assigned"}
-                    disabled
-                    className="font-mono"
-                  />
-                </div>
-
                 <div className="flex items-center justify-between rounded-lg border border-border p-4">
                   <div className="space-y-0.5">
                     <Label htmlFor="isVerified">Verified Status</Label>

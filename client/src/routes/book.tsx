@@ -34,7 +34,7 @@ import {
   type SlotPeriodId,
 } from "@/lib/api-client";
 import { NHIS_SERVICES } from "@/lib/nhis-services";
-import { DOCUMENT_REQUIREMENTS, SERVICE_FEES } from "@/lib/nhis-application";
+import { DOCUMENT_REQUIREMENTS } from "@/lib/nhis-application";
 import { DEFAULT_CENTRE_NAME } from "@/lib/centre";
 import { isGhanaPublicHoliday, getHolidayInfo } from "@/lib/ghana-holidays";
 
@@ -61,7 +61,6 @@ function BookPage() {
   const [date, setDate] = useState<Date | undefined>();
   const [slot, setSlot] = useState<SlotPeriodId | null>(null);
   const [periods, setPeriods] = useState<SlotPeriodAvailability[]>([]);
-  const [feePaymentReference, setFeePaymentReference] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [done, setDone] = useState(false);
@@ -72,7 +71,6 @@ function BookPage() {
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
   const documents = DOCUMENT_REQUIREMENTS[serviceType];
-  const fee = SERVICE_FEES[serviceType];
   const requiredDocIds = documents.filter((d) => d.required).map((d) => d.id);
   const allRequiredAcked = requiredDocIds.every((id) => docAck.has(id));
 
@@ -129,7 +127,6 @@ function BookPage() {
         timeSlot: slot,
         serviceType,
         documentsAcknowledged: [...docAck],
-        feePaymentReference: feePaymentReference.trim() || undefined,
         beneficiaryName: bookingFor === "someone_else" ? beneficiaryName.trim() : undefined,
       });
       authStore.addAppointment(response.appointment);
@@ -349,18 +346,6 @@ function BookPage() {
                   : "—"
               }
             />
-            <Row label="Fee" value={fee > 0 ? `GHS ${fee}` : "No fee"} />
-            {fee > 0 && (
-              <div>
-                <Label htmlFor="payRef">Payment reference (optional)</Label>
-                <Input
-                  id="payRef"
-                  className="mt-1"
-                  value={feePaymentReference}
-                  onChange={(e) => setFeePaymentReference(e.target.value)}
-                />
-              </div>
-            )}
           </div>
         )}
       </div>

@@ -23,7 +23,7 @@ export interface DocumentRequirement {
 
 export const DOCUMENT_REQUIREMENTS: Record<NhisServiceType, DocumentRequirement[]> = {
   new_registration: [
-    { id: "ghana_card", label: "Valid Ghana Card (original)", required: true },
+    { id: "ghana_card", label: "Valid Ghana Card (if applicable)", required: false },
     { id: "birth_cert", label: "Birth certificate (if applicable)", required: false },
     { id: "residence_proof", label: "Proof of residence", required: true },
   ],
@@ -31,11 +31,6 @@ export const DOCUMENT_REQUIREMENTS: Record<NhisServiceType, DocumentRequirement[
     { id: "ghana_card", label: "Valid Ghana Card (original)", required: true },
     { id: "nhis_card", label: "Existing NHIS card or membership details", required: true },
   ],
-};
-
-export const SERVICE_FEES: Record<NhisServiceType, number> = {
-  new_registration: 0,
-  renewal: 0,
 };
 
 export function getApplicationStatusIndex(status: ApplicationStatus): number {
