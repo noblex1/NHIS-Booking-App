@@ -271,31 +271,34 @@ function BookPage() {
 
         {step === 3 && (
           <div className="grid gap-6 lg:grid-cols-[auto_1fr]">
-            <div>
+            <div className="w-full">
               <h2 className="mb-2 text-sm font-semibold">Visit date</h2>
-              <Calendar
-                mode="single"
-                selected={date}
-                month={calendarMonth}
-                onMonthChange={setCalendarMonth}
-                onSelect={(d) => {
-                  setDate(d);
-                  setSlot(null);
-                }}
-                disabled={(d) => {
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  if (d < today) return true;
-                  const key = format(d, "yyyy-MM-dd");
-                  if (blockedDates.has(key)) return true;
-                  // Disable weekends (Saturday=6, Sunday=0) unless explicitly opened
-                  const dayOfWeek = d.getDay();
-                  if ((dayOfWeek === 0 || dayOfWeek === 6) && !openDates.has(key)) return true;
-                  // Disable Ghana public holidays unless explicitly opened
-                  if (isGhanaPublicHoliday(d) && !openDates.has(key)) return true;
-                  return false;
-                }}
-              />
+              <div className="flex justify-center lg:justify-start">
+                <Calendar
+                  className="w-full max-w-full scale-105 sm:scale-100"
+                  mode="single"
+                  selected={date}
+                  month={calendarMonth}
+                  onMonthChange={setCalendarMonth}
+                  onSelect={(d) => {
+                    setDate(d);
+                    setSlot(null);
+                  }}
+                  disabled={(d) => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    if (d < today) return true;
+                    const key = format(d, "yyyy-MM-dd");
+                    if (blockedDates.has(key)) return true;
+                    // Disable weekends (Saturday=6, Sunday=0) unless explicitly opened
+                    const dayOfWeek = d.getDay();
+                    if ((dayOfWeek === 0 || dayOfWeek === 6) && !openDates.has(key)) return true;
+                    // Disable Ghana public holidays unless explicitly opened
+                    if (isGhanaPublicHoliday(d) && !openDates.has(key)) return true;
+                    return false;
+                  }}
+                />
+              </div>
             </div>
             <div>
               <h2 className="mb-2 text-sm font-semibold">Time period</h2>
