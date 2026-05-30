@@ -25,13 +25,11 @@ export const DOCUMENT_REQUIREMENTS: Record<NhisServiceType, DocumentRequirement[
   new_registration: [
     { id: "ghana_card", label: "Valid Ghana Card (original)", required: true },
     { id: "birth_cert", label: "Birth certificate (if applicable)", required: false },
-    { id: "passport_photo", label: "Two passport-sized photographs", required: true },
     { id: "residence_proof", label: "Proof of residence", required: true },
   ],
   renewal: [
     { id: "ghana_card", label: "Valid Ghana Card (original)", required: true },
     { id: "nhis_card", label: "Existing NHIS card or membership details", required: true },
-    { id: "passport_photo", label: "One passport-sized photograph", required: false },
   ],
 };
 
