@@ -42,7 +42,11 @@ router.get(
   [
     query("date").optional().isISO8601().toDate(),
     query("applicationStatus").optional().isString(),
-    query("search").optional().isString(),
+    query("serviceType")
+      .optional()
+      .isIn(["all", "new_registration", "renewal"]),
+    query("timeSlot").optional().isIn(["all", "morning", "afternoon", "evening"]),
+    query("search").optional().isString().trim(),
     validate,
   ],
   getCentreAppointments,

@@ -7,7 +7,7 @@ const { generateUniqueNhisNumber } = require("../utils/nhis");
 const {
   APPLICATION_STATUS,
 } = require("../config/nhisApplication");
-const { APPOINTMENT_STATUS } = require("../config/constants");
+const { APPOINTMENT_STATUS, NHIS_SERVICE_TYPE_VALUES, SLOT_PERIOD_IDS } = require("../config/constants");
 
 const APPLICATION_STATUS_VALUES = Object.values(APPLICATION_STATUS);
 
@@ -23,6 +23,10 @@ function dayRange(dateInput) {
   const end = new Date(day);
   end.setUTCDate(end.getUTCDate() + 1);
   return { start: day, end };
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 async function findScopedAppointment(id, centreId) {
@@ -82,7 +86,12 @@ const getDashboardStats = asyncHandler(async (req, res) => {
 const getCentreAppointments = asyncHandler(async (req, res) => {
   const centreId = getOfficialCentreId(req.official);
   const { start, end } = dayRange(req.query.date);
-  const { applicationStatus, search = "" } = req.query;
+  const {
+    applicationStatus,
+    serviceType,
+    timeSlot,
+    search = "",
+  } = req.query;
 
   const query = {
     centreId,
@@ -97,31 +106,48 @@ const getCentreAppointments = asyncHandler(async (req, res) => {
     query.applicationStatus = applicationStatus;
   }
 
-  let appointments = await Appointment.find(query)
-    .populate("userId", "fullName email nhisNumber")
-    .populate("centreId", "name city region")
-    .sort({ timeSlot: 1, createdAt: 1 });
-
-  if (search.trim()) {
-    const term = search.trim().toLowerCase();
-    appointments = appointments.filter((apt) => {
-      const name = apt.userId?.fullName?.toLowerCase() || "";
-      const email = apt.userId?.email?.toLowerCase() || "";
-      const ref = apt.referenceNumber?.toLowerCase() || "";
-      const nhis = apt.userId?.nhisNumber?.toLowerCase() || "";
-      return (
-        name.includes(term) ||
-        email.includes(term) ||
-        ref.includes(term) ||
-        nhis.includes(term)
-      );
-    });
+  if (serviceType && serviceType !== "all" && NHIS_SERVICE_TYPE_VALUES.includes(serviceType)) {
+    query.serviceType = serviceType;
   }
+
+  if (timeSlot && timeSlot !== "all" && SLOT_PERIOD_IDS.includes(timeSlot)) {
+    query.timeSlot = timeSlot;
+  }
+
+  const term = String(search).trim();
+  if (term) {
+    const regex = new RegExp(escapeRegex(term), "i");
+    const matchingUsers = await User.find({
+      $or: [{ fullName: regex }, { email: regex }, { nhisNumber: regex }],
+    }).select("_id");
+    const userIds = matchingUsers.map((u) => u._id);
+
+    query.$or = [
+      { referenceNumber: regex },
+      { beneficiaryName: regex },
+      ...(userIds.length > 0 ? [{ userId: { $in: userIds } }] : []),
+    ];
+  }
+
+  const [appointments, totalForDate] = await Promise.all([
+    Appointment.find(query)
+      .populate("userId", "fullName email nhisNumber")
+      .populate("centreId", "name city region")
+      .sort({ timeSlot: 1, createdAt: 1 }),
+    Appointment.countDocuments({
+      centreId,
+      date: { $gte: start, $lt: end },
+    }),
+  ]);
 
   res.status(200).json({
     success: true,
     date: start.toISOString().slice(0, 10),
     appointments,
+    meta: {
+      total: appointments.length,
+      totalForDate,
+    },
   });
 });
 

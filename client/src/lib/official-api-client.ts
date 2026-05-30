@@ -85,6 +85,7 @@ export interface OfficialAppointment {
   status: string;
   applicationStatus: string;
   referenceNumber?: string;
+  beneficiaryName?: string;
   feeAmount?: number;
   feePaid?: boolean;
   documentsAcknowledged?: string[];
@@ -131,17 +132,28 @@ export const officialAppointmentsApi = {
   getForDate(params?: {
     date?: string;
     applicationStatus?: string;
+    serviceType?: string;
+    timeSlot?: string;
     search?: string;
   }) {
     const query = new URLSearchParams();
     if (params?.date) query.append("date", params.date);
-    if (params?.applicationStatus) query.append("applicationStatus", params.applicationStatus);
+    if (params?.applicationStatus && params.applicationStatus !== "all") {
+      query.append("applicationStatus", params.applicationStatus);
+    }
+    if (params?.serviceType && params.serviceType !== "all") {
+      query.append("serviceType", params.serviceType);
+    }
+    if (params?.timeSlot && params.timeSlot !== "all") {
+      query.append("timeSlot", params.timeSlot);
+    }
     if (params?.search) query.append("search", params.search);
     const qs = query.toString();
     return fetchOfficialApi<{
       success: boolean;
       date: string;
       appointments: OfficialAppointment[];
+      meta?: { total: number; totalForDate: number };
     }>(`/api/official/appointments${qs ? `?${qs}` : ""}`);
   },
 
