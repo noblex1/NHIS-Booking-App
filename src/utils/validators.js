@@ -45,6 +45,37 @@ const availableSlotsValidator = [
   query("date").isISO8601().withMessage("date query param must be YYYY-MM-DD"),
 ];
 
+const passwordOtpValidator = [
+  body("otp")
+    .trim()
+    .isLength({ min: 4, max: 8 })
+    .isNumeric()
+    .withMessage("otp must be a valid numeric code"),
+];
+
+const changePasswordValidator = [
+  ...passwordOtpValidator,
+  body("newPassword")
+    .isLength({ min: 6 })
+    .withMessage("New password must be at least 6 characters"),
+];
+
+const resetPasswordRequestValidator = [
+  body("email").trim().isEmail().normalizeEmail().withMessage("Valid email is required"),
+];
+
+const resetPasswordValidator = [
+  body("email").trim().isEmail().normalizeEmail().withMessage("Valid email is required"),
+  body("otp")
+    .trim()
+    .isLength({ min: 4, max: 8 })
+    .isNumeric()
+    .withMessage("otp must be a valid numeric code"),
+  body("newPassword")
+    .isLength({ min: 6 })
+    .withMessage("New password must be at least 6 characters"),
+];
+
 module.exports = {
   registerValidator,
   loginValidator,
@@ -53,4 +84,8 @@ module.exports = {
   createAppointmentValidator,
   scheduleRangeValidator,
   availableSlotsValidator,
+  passwordOtpValidator,
+  changePasswordValidator,
+  resetPasswordRequestValidator,
+  resetPasswordValidator,
 };

@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, FileText, Shield } from "lucide-react";
+import { requireUserSession } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/profile/terms")({
+  beforeLoad: requireUserSession,
   head: () => ({
     meta: [
       { title: "Terms & Privacy - NHIS Booking" },

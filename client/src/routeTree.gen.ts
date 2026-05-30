@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
@@ -17,6 +18,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BookRouteImport } from './routes/book'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as ProfileTermsRouteImport } from './routes/profile/terms'
 import { Route as ProfileNotificationsRouteImport } from './routes/profile/notifications'
 import { Route as ProfileHelpRouteImport } from './routes/profile/help'
@@ -39,6 +41,11 @@ import { Route as AdminLayoutUsersUserIdRouteImport } from './routes/admin/_layo
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -75,6 +82,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileIndexRoute = ProfileIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const ProfileTermsRoute = ProfileTermsRouteImport.update({
   id: '/terms',
@@ -175,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/verify': typeof VerifyRoute
   '/admin': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
@@ -184,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/profile/help': typeof ProfileHelpRoute
   '/profile/notifications': typeof ProfileNotificationsRoute
   '/profile/terms': typeof ProfileTermsRoute
+  '/profile/': typeof ProfileIndexRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/centres': typeof AdminLayoutCentresRoute
@@ -201,8 +215,8 @@ export interface FileRoutesByTo {
   '/book': typeof BookRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
-  '/profile': typeof ProfileRouteWithChildren
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/verify': typeof VerifyRoute
   '/admin': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
@@ -211,6 +225,7 @@ export interface FileRoutesByTo {
   '/profile/help': typeof ProfileHelpRoute
   '/profile/notifications': typeof ProfileNotificationsRoute
   '/profile/terms': typeof ProfileTermsRoute
+  '/profile': typeof ProfileIndexRoute
   '/admin/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/centres': typeof AdminLayoutCentresRoute
@@ -231,6 +246,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRouteWithChildren
   '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/verify': typeof VerifyRoute
   '/admin/_layout': typeof AdminLayoutRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
@@ -240,6 +256,7 @@ export interface FileRoutesById {
   '/profile/help': typeof ProfileHelpRoute
   '/profile/notifications': typeof ProfileNotificationsRoute
   '/profile/terms': typeof ProfileTermsRoute
+  '/profile/': typeof ProfileIndexRoute
   '/admin/_layout/appointments': typeof AdminLayoutAppointmentsRoute
   '/admin/_layout/availability': typeof AdminLayoutAvailabilityRoute
   '/admin/_layout/centres': typeof AdminLayoutCentresRoute
@@ -261,6 +278,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/register'
+    | '/reset-password'
     | '/verify'
     | '/admin'
     | '/admin/login'
@@ -270,6 +288,7 @@ export interface FileRouteTypes {
     | '/profile/help'
     | '/profile/notifications'
     | '/profile/terms'
+    | '/profile/'
     | '/admin/appointments'
     | '/admin/availability'
     | '/admin/centres'
@@ -287,8 +306,8 @@ export interface FileRouteTypes {
     | '/book'
     | '/dashboard'
     | '/login'
-    | '/profile'
     | '/register'
+    | '/reset-password'
     | '/verify'
     | '/admin'
     | '/admin/login'
@@ -297,6 +316,7 @@ export interface FileRouteTypes {
     | '/profile/help'
     | '/profile/notifications'
     | '/profile/terms'
+    | '/profile'
     | '/admin/appointments'
     | '/admin/availability'
     | '/admin/centres'
@@ -316,6 +336,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/register'
+    | '/reset-password'
     | '/verify'
     | '/admin/_layout'
     | '/admin/login'
@@ -325,6 +346,7 @@ export interface FileRouteTypes {
     | '/profile/help'
     | '/profile/notifications'
     | '/profile/terms'
+    | '/profile/'
     | '/admin/_layout/appointments'
     | '/admin/_layout/availability'
     | '/admin/_layout/centres'
@@ -345,6 +367,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRouteWithChildren
   RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   VerifyRoute: typeof VerifyRoute
   AdminLayoutRoute: typeof AdminLayoutRouteWithChildren
   AdminLoginRoute: typeof AdminLoginRoute
@@ -359,6 +382,13 @@ declare module '@tanstack/react-router' {
       path: '/verify'
       fullPath: '/verify'
       preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -409,6 +439,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/profile/': {
+      id: '/profile/'
+      path: '/'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof ProfileIndexRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/profile/terms': {
       id: '/profile/terms'
@@ -544,6 +581,7 @@ interface ProfileRouteChildren {
   ProfileHelpRoute: typeof ProfileHelpRoute
   ProfileNotificationsRoute: typeof ProfileNotificationsRoute
   ProfileTermsRoute: typeof ProfileTermsRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
 }
 
 const ProfileRouteChildren: ProfileRouteChildren = {
@@ -551,6 +589,7 @@ const ProfileRouteChildren: ProfileRouteChildren = {
   ProfileHelpRoute: ProfileHelpRoute,
   ProfileNotificationsRoute: ProfileNotificationsRoute,
   ProfileTermsRoute: ProfileTermsRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
 }
 
 const ProfileRouteWithChildren =
@@ -613,6 +652,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRouteWithChildren,
   RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   VerifyRoute: VerifyRoute,
   AdminLayoutRoute: AdminLayoutRouteWithChildren,
   AdminLoginRoute: AdminLoginRoute,

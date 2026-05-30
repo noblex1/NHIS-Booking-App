@@ -47,7 +47,7 @@ export function MobileBottomNav() {
     return null;
   }
 
-  const authPages = ["/login", "/register", "/verify"];
+  const authPages = ["/login", "/register", "/verify", "/reset-password"];
   const isStaffPortal =
     currentPath.startsWith("/admin") || currentPath.startsWith("/official");
 
@@ -70,8 +70,10 @@ export function MobileBottomNav() {
           <div className="grid grid-cols-4 gap-1 px-2 py-2">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentPath === item.to || 
-                              (item.to === "/dashboard" && currentPath === "/");
+              const isActive =
+                currentPath === item.to ||
+                (item.to === "/dashboard" && currentPath === "/") ||
+                (item.to === "/profile" && currentPath.startsWith("/profile"));
               
               return (
                 <Link

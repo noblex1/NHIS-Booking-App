@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useAuthStore } from "@/lib/auth-store";
+import { requireUserSession } from "@/lib/route-guards";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +16,7 @@ import {
 } from "@/components/ui/input-otp";
 
 export const Route = createFileRoute("/profile/change-password")({
+  beforeLoad: requireUserSession,
   head: () => ({
     meta: [
       { title: "Change Password - NHIS Booking" },
@@ -25,7 +28,8 @@ export const Route = createFileRoute("/profile/change-password")({
 
 function ChangePasswordPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<"request" | "verify" | "change">("request");
+  const { user } = useAuthStore();
+  const [step, setStep] = useState<"request" | "change">("request");
   const [loading, setLoading] = useState(false);
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -36,7 +40,7 @@ function ChangePasswordPage() {
     try {
       await authApi.requestPasswordChangeOTP();
       toast.success("OTP sent to your email");
-      setStep("verify");
+      setStep("change");
     } catch (error: any) {
       toast.error(error.message || "Failed to send OTP");
     } finally {
@@ -44,24 +48,11 @@ function ChangePasswordPage() {
     }
   };
 
-  const handleVerifyOTP = async () => {
+  const handleChangePassword = async () => {
     if (otp.length !== 6) {
       toast.error("Please enter the 6-digit code");
       return;
     }
-    setLoading(true);
-    try {
-      await authApi.verifyPasswordChangeOTP(otp);
-      toast.success("Code verified");
-      setStep("change");
-    } catch (error: any) {
-      toast.error(error.message || "Invalid code");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChangePassword = async () => {
     if (newPassword.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
@@ -112,7 +103,9 @@ function ChangePasswordPage() {
             <div className="text-center">
               <h2 className="text-lg font-semibold">Verify Your Identity</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                We'll send a verification code to your email address to confirm it's you.
+                We&apos;ll send a 6-digit verification code to{" "}
+                <span className="font-medium text-foreground">{user?.email}</span> to confirm
+                it&apos;s you.
               </p>
             </div>
             <Button
@@ -135,56 +128,6 @@ function ChangePasswordPage() {
           </div>
         )}
 
-        {step === "verify" && (
-          <div className="space-y-4">
-            <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Mail className="h-8 w-8 text-primary" />
-              </div>
-            </div>
-            <div className="text-center">
-              <h2 className="text-lg font-semibold">Enter Verification Code</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                We've sent a 6-digit code to your email. Enter it below.
-              </p>
-            </div>
-            <div className="flex justify-center">
-              <InputOTP maxLength={6} value={otp} onChange={setOtp}>
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                </InputOTPGroup>
-              </InputOTP>
-            </div>
-            <Button
-              className="w-full"
-              onClick={handleVerifyOTP}
-              disabled={loading || otp.length !== 6}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                "Verify Code"
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={handleRequestOTP}
-              disabled={loading}
-            >
-              Resend Code
-            </Button>
-          </div>
-        )}
-
         {step === "change" && (
           <div className="space-y-4">
             <div className="flex justify-center">
@@ -193,12 +136,29 @@ function ChangePasswordPage() {
               </div>
             </div>
             <div className="text-center">
-              <h2 className="text-lg font-semibold">Create New Password</h2>
+              <h2 className="text-lg font-semibold">Enter Code & New Password</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Choose a strong password to protect your account.
+                Enter the 6-digit code sent to{" "}
+                <span className="font-medium text-foreground">{user?.email}</span> and choose a
+                new password.
               </p>
             </div>
             <div className="space-y-3">
+              <div>
+                <Label htmlFor="otp">Verification Code</Label>
+                <div className="mt-1 flex justify-center">
+                  <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+              </div>
               <div>
                 <Label htmlFor="newPassword">New Password</Label>
                 <Input
@@ -225,7 +185,7 @@ function ChangePasswordPage() {
             <Button
               className="w-full"
               onClick={handleChangePassword}
-              disabled={loading || !newPassword || !confirmPassword}
+              disabled={loading || otp.length !== 6 || !newPassword || !confirmPassword}
             >
               {loading ? (
                 <>
@@ -235,6 +195,14 @@ function ChangePasswordPage() {
               ) : (
                 "Change Password"
               )}
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={handleRequestOTP}
+              disabled={loading}
+            >
+              Resend Code
             </Button>
           </div>
         )}

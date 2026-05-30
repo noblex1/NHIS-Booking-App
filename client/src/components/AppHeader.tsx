@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Heart, LogOut, Menu } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore, authStore } from "@/lib/auth-store";
 import { authApi } from "@/lib/api-client";
@@ -23,7 +23,7 @@ export function AppHeader() {
   };
 
   // Hide on citizen auth pages and staff portals (admin / official have their own chrome)
-  const authPages = ["/login", "/register", "/verify"];
+  const authPages = ["/login", "/register", "/verify", "/reset-password"];
   const isAuthPage = authPages.includes(currentPath);
   const isStaffPortal =
     currentPath.startsWith("/admin") || currentPath.startsWith("/official");
@@ -37,13 +37,17 @@ export function AppHeader() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:h-16 sm:px-6">
         {/* Logo */}
         <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
-            <Heart className="h-5 w-5" fill="currentColor" />
+          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm transition-transform group-hover:scale-105">
+            <img 
+              src="/logo.jpeg" 
+              alt="NHIS Logo" 
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="hidden leading-tight sm:block">
             <div className="text-sm font-bold text-foreground">NHIS</div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Registration & Renewal
+              Booking System
             </div>
           </div>
         </Link>

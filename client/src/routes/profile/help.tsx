@@ -10,8 +10,13 @@ import {
 } from "@/components/ui/accordion";
 import { ArrowLeft, Search, Mail, Phone, MessageCircle, HelpCircle } from "lucide-react";
 import { useState } from "react";
+import { requireUserSession } from "@/lib/route-guards";
+
+const SUPPORT_EMAIL = "amponsahemmanuelowusu58@gmail.com";
+const SUPPORT_PHONE = "0599105953";
 
 export const Route = createFileRoute("/profile/help")({
+  beforeLoad: requireUserSession,
   head: () => ({
     meta: [
       { title: "Help Center - NHIS Booking" },
@@ -23,9 +28,9 @@ export const Route = createFileRoute("/profile/help")({
 
 const FAQ_ITEMS = [
   {
-    question: "How do I book an appointment?",
+    question: "How do I book a centre visit?",
     answer:
-      "To book an appointment, sign in to your account, click 'Book centre visit', select your service type (New registration or Card Update), choose your preferred date and time, and confirm your booking. You'll receive a confirmation email with your appointment details.",
+      "Sign in, tap Book a centre visit, choose New NHIS registration or NHIS renewal, pick a service centre date and time slot, acknowledge the document checklist, and confirm. You will receive a reference number and confirmation email.",
   },
   {
     question: "Can I reschedule my appointment?",
@@ -109,20 +114,23 @@ function HelpPage() {
         <ContactCard
           icon={Mail}
           title="Email"
-          description="support@nhis.gov.gh"
+          description={SUPPORT_EMAIL}
           action="Send Email"
+          href={`mailto:${SUPPORT_EMAIL}?subject=NHIS%20Booking%20Support`}
         />
         <ContactCard
           icon={Phone}
           title="Phone"
-          description="0800 123 456"
+          description={SUPPORT_PHONE}
           action="Call Now"
+          href={`tel:${SUPPORT_PHONE}`}
         />
         <ContactCard
           icon={MessageCircle}
           title="Live Chat"
-          description="Mon-Fri, 8AM-5PM"
-          action="Start Chat"
+          description="Mon–Fri, 8AM–5PM"
+          action="Email Us"
+          href={`mailto:${SUPPORT_EMAIL}?subject=NHIS%20Booking%20Live%20Chat`}
         />
       </div>
 
@@ -168,9 +176,11 @@ function HelpPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           Our support team is here to assist you
         </p>
-        <Button className="mt-4">
-          <Mail className="mr-2 h-4 w-4" />
-          Contact Support
+        <Button className="mt-4" asChild>
+          <a href={`mailto:${SUPPORT_EMAIL}?subject=NHIS%20Booking%20Help`}>
+            <Mail className="mr-2 h-4 w-4" />
+            Contact Support
+          </a>
         </Button>
       </Card>
     </div>
@@ -182,11 +192,13 @@ function ContactCard({
   title,
   description,
   action,
+  href,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
   action: string;
+  href: string;
 }) {
   return (
     <Card className="p-4 text-center">
@@ -195,8 +207,8 @@ function ContactCard({
       </div>
       <h3 className="mt-3 font-semibold">{title}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      <Button variant="ghost" size="sm" className="mt-3 w-full">
-        {action}
+      <Button variant="ghost" size="sm" className="mt-3 w-full" asChild>
+        <a href={href}>{action}</a>
       </Button>
     </Card>
   );

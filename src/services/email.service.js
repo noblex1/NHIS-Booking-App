@@ -123,15 +123,29 @@ function createEmailTransporter() {
  * @param {string} to - Recipient email address
  * @param {string} otpCode - OTP code to send
  */
-async function sendOtpEmail(to, otpCode) {
+const OTP_PURPOSE_COPY = {
+  verification: {
+    subject: "NHIS Verification Code",
+    heading: "Your verification code is:",
+    intro: "Use this code to verify your NHIS Booking account.",
+  },
+  password: {
+    subject: "NHIS Password Verification Code",
+    heading: "Your password verification code is:",
+    intro: "Use this code to change or reset your NHIS Booking password.",
+  },
+};
+
+async function sendOtpEmail(to, otpCode, purpose = "verification") {
   const { fromHeader } = resolveFromAddress();
   const expiryMinutes = process.env.OTP_EXPIRY_MINUTES || 5;
+  const copy = OTP_PURPOSE_COPY[purpose] || OTP_PURPOSE_COPY.verification;
 
   const mailOptions = {
     from: fromHeader,
     to,
-    subject: "NHIS Verification Code",
-    text: `Your NHIS verification code is: ${otpCode}\n\nThis code expires in ${expiryMinutes} minutes.\n\nIf you did not request this code, please ignore this email.`,
+    subject: copy.subject,
+    text: `${copy.intro}\n\nYour code is: ${otpCode}\n\nThis code expires in ${expiryMinutes} minutes.\n\nIf you did not request this code, please ignore this email.`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -201,7 +215,8 @@ async function sendOtpEmail(to, otpCode) {
           </div>
           
           <div class="message">
-            <p>Your verification code is:</p>
+            <p>${copy.intro}</p>
+            <p>${copy.heading}</p>
           </div>
           
           <div class="otp-code">

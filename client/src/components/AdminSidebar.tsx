@@ -43,7 +43,7 @@ export function AdminSidebar() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-foreground">NHIS Admin</h1>
-          <p className="text-xs text-muted-foreground">Registration & renewal</p>
+          <p className="text-xs text-muted-foreground">Booking System</p>
         </div>
       </div>
 

@@ -1,14 +1,16 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { createFileRoute, useNavigate } from "@tantml:react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Bell, Mail, MessageSquare, Calendar } from "lucide-react";
+import { ArrowLeft, Bell, Mail, MessageSquare, Calendar, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { notificationsApi } from "@/lib/api-client";
+import { requireUserSession } from "@/lib/route-guards";
 
 export const Route = createFileRoute("/profile/notifications")({
+  beforeLoad: requireUserSession,
   head: () => ({
     meta: [
       { title: "Notifications - NHIS Booking" },
@@ -20,15 +22,56 @@ export const Route = createFileRoute("/profile/notifications")({
 
 function NotificationsPage() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [appointmentReminders, setAppointmentReminders] = useState(true);
   const [statusUpdates, setStatusUpdates] = useState(true);
   const [promotions, setPromotions] = useState(false);
 
-  const handleSave = () => {
-    // In a real app, save to backend
-    toast.success("Notification preferences saved");
+  useEffect(() => {
+    loadPreferences();
+  }, []);
+
+  const loadPreferences = async () => {
+    try {
+      const response = await notificationsApi.getPreferences();
+      const prefs = response.preferences;
+      setEmailNotifications(prefs.emailNotifications);
+      setAppointmentReminders(prefs.appointmentReminders);
+      setStatusUpdates(prefs.statusUpdates);
+      setPromotions(prefs.promotions);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load preferences");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await notificationsApi.updatePreferences({
+        emailNotifications,
+        appointmentReminders,
+        statusUpdates,
+        promotions,
+      });
+      toast.success("Notification preferences saved");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save preferences");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 pb-24 md:pb-8 md:py-8">
@@ -87,10 +130,11 @@ function NotificationsPage() {
           <div className="space-y-4">
             <NotificationToggle
               label="Appointment Reminders"
-              description="Get reminded 24 hours before your appointment"
+              description="Get reminded 24 hours before your centre visit"
               checked={appointmentReminders}
               onCheckedChange={setAppointmentReminders}
               icon={Calendar}
+              disabled={!emailNotifications}
             />
             <NotificationToggle
               label="Status Updates"
@@ -98,6 +142,7 @@ function NotificationsPage() {
               checked={statusUpdates}
               onCheckedChange={setStatusUpdates}
               icon={MessageSquare}
+              disabled={!emailNotifications}
             />
           </div>
         </Card>
@@ -120,12 +165,20 @@ function NotificationsPage() {
               description="Receive news about NHIS services and updates"
               checked={promotions}
               onCheckedChange={setPromotions}
+              disabled={!emailNotifications}
             />
           </div>
         </Card>
 
-        <Button className="w-full" onClick={handleSave}>
-          Save Preferences
+        <Button className="w-full" onClick={handleSave} disabled={saving}>
+          {saving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Save Preferences"
+          )}
         </Button>
       </div>
     </div>
@@ -138,15 +191,19 @@ function NotificationToggle({
   checked,
   onCheckedChange,
   icon: Icon,
+  disabled = false,
 }: {
   label: string;
   description: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   icon?: React.ComponentType<{ className?: string }>;
+  disabled?: boolean;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
+    <div
+      className={`flex items-start justify-between gap-4 rounded-lg border border-border p-4 ${disabled ? "opacity-60" : ""}`}
+    >
       <div className="flex-1">
         <div className="flex items-center gap-2">
           {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
@@ -160,6 +217,7 @@ function NotificationToggle({
         id={label}
         checked={checked}
         onCheckedChange={onCheckedChange}
+        disabled={disabled}
       />
     </div>
   );

@@ -226,6 +226,78 @@ export const authApi = {
       body: JSON.stringify({ otp, newPassword }),
     });
   },
+
+  /**
+   * Request password reset OTP (forgot password)
+   */
+  async requestPasswordReset(email: string): Promise<{ success: boolean; message: string }> {
+    return fetchApi("/api/auth/request-password-reset", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  /**
+   * Reset password with OTP (forgot password)
+   */
+  async resetPassword(email: string, otp: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    return fetchApi("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ email, otp, newPassword }),
+    });
+  },
+};
+
+// ============================================================================
+// Notifications API
+// ============================================================================
+
+export interface NotificationPreferences {
+  _id: string;
+  userId: string;
+  emailNotifications: boolean;
+  appointmentReminders: boolean;
+  statusUpdates: boolean;
+  promotions: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GetPreferencesResponse {
+  success: boolean;
+  preferences: NotificationPreferences;
+}
+
+export interface UpdatePreferencesRequest {
+  emailNotifications?: boolean;
+  appointmentReminders?: boolean;
+  statusUpdates?: boolean;
+  promotions?: boolean;
+}
+
+export interface UpdatePreferencesResponse {
+  success: boolean;
+  message: string;
+  preferences: NotificationPreferences;
+}
+
+export const notificationsApi = {
+  /**
+   * Get user's notification preferences
+   */
+  async getPreferences(): Promise<GetPreferencesResponse> {
+    return fetchApi<GetPreferencesResponse>("/api/notifications/preferences");
+  },
+
+  /**
+   * Update user's notification preferences
+   */
+  async updatePreferences(data: UpdatePreferencesRequest): Promise<UpdatePreferencesResponse> {
+    return fetchApi<UpdatePreferencesResponse>("/api/notifications/preferences", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 // ============================================================================
@@ -372,6 +444,7 @@ export const api = {
   auth: authApi,
   appointments: appointmentsApi,
   health: healthApi,
+  notifications: notificationsApi,
 };
 
 export default api;

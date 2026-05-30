@@ -2,7 +2,11 @@ const User = require("../models/User");
 const ApiError = require("../utils/ApiError");
 const asyncHandler = require("../utils/asyncHandler");
 const { signAuthToken } = require("../utils/jwt");
-const { createAndSendOtp, verifyOtpCode } = require("../services/otp.service");
+const {
+  createAndSendOtp,
+  createAndSendPasswordOtp,
+  verifyOtpCode,
+} = require("../services/otp.service");
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -102,9 +106,118 @@ const resendOtp = asyncHandler(async (req, res) => {
   });
 });
 
+const requestPasswordChangeOTP = asyncHandler(async (req, res) => {
+  const user = req.user;
+  
+  if (!user) {
+    throw new ApiError(401, "User not authenticated");
+  }
+
+  await createAndSendPasswordOtp(user.email);
+
+  res.status(200).json({
+    success: true,
+    message: "OTP sent to your email",
+  });
+});
+
+const verifyPasswordChangeOTP = asyncHandler(async (req, res) => {
+  const { otp } = req.body;
+  const user = req.user;
+
+  if (!user) {
+    throw new ApiError(401, "User not authenticated");
+  }
+
+  await verifyOtpCode(user.email, otp.trim());
+
+  res.status(200).json({
+    success: true,
+    message: "OTP verified successfully",
+  });
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+  const { otp, newPassword } = req.body;
+  const user = req.user;
+
+  if (!user) {
+    throw new ApiError(401, "User not authenticated");
+  }
+
+  // Verify OTP for security
+  await verifyOtpCode(user.email, otp.trim());
+
+  // Update password
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Password changed successfully",
+  });
+});
+
+const requestPasswordReset = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const cleanEmail = email.trim().toLowerCase();
+
+  const user = await User.findOne({
+    email: cleanEmail,
+    isVerified: true,
+  });
+
+  if (!user) {
+    // Don't reveal if user exists or not for security
+    res.status(200).json({
+      success: true,
+      message: "If an account exists with this email, you will receive a password reset code.",
+    });
+    return;
+  }
+
+  await createAndSendPasswordOtp(cleanEmail);
+
+  res.status(200).json({
+    success: true,
+    message: "Password reset code sent to your email",
+  });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  const cleanEmail = email.trim().toLowerCase();
+
+  // Verify OTP
+  await verifyOtpCode(cleanEmail, otp.trim());
+
+  const user = await User.findOne({
+    email: cleanEmail,
+    isVerified: true,
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Update password
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Password reset successfully",
+  });
+});
+
 module.exports = {
   login,
   register,
   verifyOtp,
   resendOtp,
+  requestPasswordChangeOTP,
+  verifyPasswordChangeOTP,
+  changePassword,
+  requestPasswordReset,
+  resetPassword,
 };

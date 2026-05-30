@@ -14,7 +14,21 @@ async function createAndSendOtp(email) {
     expiresAt,
   });
 
-  await sendOtpEmail(email, otpCode);
+  await sendOtpEmail(email, otpCode, "verification");
+}
+
+async function createAndSendPasswordOtp(email) {
+  const otpCode = generateOtpCode();
+  const expiresAt = getOtpExpiryDate();
+
+  await OTP.deleteMany({ email });
+  await OTP.create({
+    email,
+    otpHash: hashOtp(otpCode),
+    expiresAt,
+  });
+
+  await sendOtpEmail(email, otpCode, "password");
 }
 
 async function verifyOtpCode(email, otpCode) {
@@ -45,5 +59,6 @@ async function verifyOtpCode(email, otpCode) {
 
 module.exports = {
   createAndSendOtp,
+  createAndSendPasswordOtp,
   verifyOtpCode,
 };
